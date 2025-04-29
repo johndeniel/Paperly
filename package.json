@@ -5,14 +5,16 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev --turbopack --port 3002",
-    "start": "next start --port 3001",
-    "lint": "next lint",
+    "start": "next start --port 3002",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint-fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --check \"**/*.{js,jsx,ts,tsx}\"",
     "format-fix": "prettier --write \"**/*.{js,jsx,ts,tsx}\"",
     "prepare": "husky install"
   },
   "dependencies": {
     "next": "15.3.1",
+    "pg": "^8.15.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -20,6 +22,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.11.14",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
