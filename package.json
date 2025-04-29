@@ -10,13 +10,17 @@
     "lint-fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --check \"**/*.{js,jsx,ts,tsx}\"",
     "format-fix": "prettier --write \"**/*.{js,jsx,ts,tsx}\"",
-     "prepare": "husky"
+    "prepare": "husky"
   },
   "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.503.0",
     "next": "15.3.1",
     "pg": "^8.15.6",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "tailwind-merge": "^3.2.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -32,6 +36,7 @@
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4",
+    "tw-animate-css": "^1.2.8",
     "typescript": "^5"
   },
   "lint-staged": {
