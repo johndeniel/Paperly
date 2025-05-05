@@ -121,13 +121,13 @@ function IconContainer({
   title,
   icon,
   href,
-  onClick, // Add this line
+  onClick,
 }: {
   mouseX: MotionValue
   title: string
   icon: React.ReactNode
   href: string
-  onClick?: () => void // Add this line
+  onClick?: () => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
 
