@@ -13,17 +13,31 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarImage } from '@/components/ui/avatar'
 import { useTheme } from 'next-themes'
-import Image from 'next/image'
+import { toast } from 'sonner'
+import { logoutUser } from '@/server/action/logout-user'
+import { useRouter } from 'next/navigation'
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
 
   const profile = {
-    avatarUrl: '/placeholder.svg?height=200&width=200',
+    avatarUrl: '/vercel.svg',
     name: 'Alex Johnson',
     username: 'alexj',
     division: 'Engineering',
+  }
+  const { push } = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      const message = await logoutUser()
+      toast.success(message)
+      push('/login')
+    } catch (error: unknown) {
+      toast.error((error as Error).message)
+    }
   }
 
   return (
@@ -39,19 +53,18 @@ export default function SettingsPage() {
         <div className="space-y-6">
           {/* Profile Card */}
           <Card className="dark:border-muted border shadow-sm">
-            <CardHeader className="px-5 py-4">
+            <CardHeader>
               <CardTitle className="text-sm font-semibold">Profile</CardTitle>
             </CardHeader>
-            <CardContent className="px-5 pb-4">
+            <CardContent className="pb-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="border-border/30 dark:border-muted relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border">
-                    <Image
-                      src={profile.avatarUrl || '/placeholder.svg'}
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage
+                      src={profile.avatarUrl}
                       alt={`${profile.name}'s avatar`}
-                      className="h-full w-full object-cover"
                     />
-                  </div>
+                  </Avatar>
                   <div className="ml-4">
                     <h3 className="text-base leading-tight font-medium">
                       {profile.name}
@@ -71,11 +84,11 @@ export default function SettingsPage() {
           </Card>
 
           {/* Password Card */}
-          <Card className="dark:border-muted border shadow-sm">
-            <CardHeader className="px-5 py-4">
+          <Card>
+            <CardHeader>
               <CardTitle className="text-sm font-semibold">Password</CardTitle>
             </CardHeader>
-            <CardContent className="px-5 pb-4">
+            <CardContent className="pb-2">
               <form className="space-y-4">
                 <div className="space-y-2">
                   <Label
@@ -124,7 +137,7 @@ export default function SettingsPage() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="hover:bg-muted/50 h-8 px-3 text-xs font-medium"
+                    className="h-8 px-3 text-xs font-medium"
                     disabled
                   >
                     Update password
@@ -135,13 +148,13 @@ export default function SettingsPage() {
           </Card>
 
           {/* Appearance Card */}
-          <Card className="dark:border-muted border shadow-sm">
-            <CardHeader className="px-5 py-4">
+          <Card>
+            <CardHeader>
               <CardTitle className="text-sm font-semibold">
                 Appearance
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-5 pb-4">
+            <CardContent className="pb-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium">Theme preference</span>
                 <DropdownMenu>
@@ -198,6 +211,7 @@ export default function SettingsPage() {
             <Button
               variant="outline"
               size="sm"
+              onClick={handleLogout}
               className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:border-muted h-8 px-3 text-xs font-medium transition-colors"
             >
               <LogOut className="mr-2 h-3.5 w-3.5" />
