@@ -4,7 +4,6 @@ import { Toaster } from '@/components/ui/sonner'
 import { useRouter, usePathname } from 'next/navigation'
 import { FloatingDock } from '@/components/ui/floating-dock'
 import { IconHome, IconCalendar, IconSettings } from '@tabler/icons-react'
-import { ThemeProvider } from '@/components/theme-provider'
 
 const links = [
   {
@@ -45,14 +44,7 @@ export function ClientLayout({
     <div className="flex h-screen w-screen flex-col overflow-hidden">
       <main className="flex-grow overflow-auto bg-white dark:bg-black">
         <div className="mx-auto h-full w-full px-4 md:px-8">
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+          {children}
         </div>
       </main>
 
