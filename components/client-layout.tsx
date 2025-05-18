@@ -3,13 +3,13 @@
 import { Toaster } from '@/components/ui/sonner'
 import { useRouter, usePathname } from 'next/navigation'
 import { FloatingDock } from '@/components/ui/floating-dock'
-import { IconHome, IconCalendar, IconSettings } from '@tabler/icons-react'
+import { Home, Calendar, Settings } from 'lucide-react'
 
 const links = [
   {
     title: 'Home',
     icon: (
-      <IconHome className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+      <Home className="h-full w-full text-neutral-500 dark:text-neutral-300" />
     ),
     href: '/',
     view: 'home',
@@ -17,7 +17,7 @@ const links = [
   {
     title: 'Calendar',
     icon: (
-      <IconCalendar className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+      <Calendar className="h-full w-full text-neutral-500 dark:text-neutral-300" />
     ),
     href: '/calendar',
     view: 'calendar',
@@ -25,7 +25,7 @@ const links = [
   {
     title: 'Settings',
     icon: (
-      <IconSettings className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+      <Settings className="h-full w-full text-neutral-500 dark:text-neutral-300" />
     ),
     href: '/settings',
     view: 'settings',
@@ -43,9 +43,7 @@ export function ClientLayout({
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden">
       <main className="flex-grow overflow-auto bg-white dark:bg-black">
-        <div className="mx-auto h-full w-full px-4 md:px-8">
-          {children}
-        </div>
+        <div className="mx-auto h-full w-full px-4 md:px-8">{children}</div>
       </main>
 
       {/* Navigation dock - only show if not on login page */}
