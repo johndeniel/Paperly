@@ -13,22 +13,127 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useTheme } from 'next-themes'
 import { toast } from 'sonner'
 import { logoutUser } from '@/server/action/logout-user'
 import { useRouter } from 'next/navigation'
+import { AuthTokenPayload } from '@/lib/types'
+
+interface UserProfile {
+  avatarUrl: string
+  name: string
+  username: string
+  division: string
+  userId: string
+}
+
+/**
+ * Extracts and validates authentication token from browser cookies
+ * @returns Decoded token payload or null if invalid/missing
+ */
+function extractAuthTokenPayload(): AuthTokenPayload | null {
+  try {
+    const cookies = document.cookie.split(';').reduce(
+      (acc, cookie) => {
+        const [key, value] = cookie.trim().split('=')
+        if (key && value) {
+          acc[key] = decodeURIComponent(value)
+        }
+        return acc
+      },
+      {} as Record<string, string>
+    )
+
+    const authToken = cookies.authToken
+    if (!authToken) {
+      console.warn('Authentication token not found in cookies')
+      return null
+    }
+
+    // Decode JWT payload (base64 decode the middle section)
+    const tokenParts = authToken.split('.')
+    if (tokenParts.length !== 3) {
+      console.error('Invalid JWT token format')
+      return null
+    }
+
+    const payload = JSON.parse(atob(tokenParts[1]))
+
+    // Validate required fields
+    if (!payload.user_id || !payload.user_name || !payload.division) {
+      console.error('Invalid token payload: missing required fields')
+      return null
+    }
+
+    return payload as AuthTokenPayload
+  } catch (error) {
+    console.error('Error extracting auth token payload:', error)
+    return null
+  }
+}
+
+/**
+ * Generates user initials from full name for avatar fallback
+ */
+function generateInitials(name: string): string {
+  return name
+    .split(' ')
+    .map(part => part.charAt(0).toUpperCase())
+    .slice(0, 2)
+    .join('')
+}
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
-
-  const profile = {
-    avatarUrl: '/vercel.svg',
-    name: 'Alex Johnson',
-    username: 'alexj',
-    division: 'Engineering',
-  }
   const { push } = useRouter()
+
+  // State for user profile data
+  const [profile, setProfile] = React.useState<UserProfile | null>(null)
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [authError, setAuthError] = React.useState<string | null>(null)
+
+  // Load user profile from auth token on component mount
+  React.useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        setIsLoading(true)
+        setAuthError(null)
+
+        const tokenPayload = extractAuthTokenPayload()
+
+        if (!tokenPayload) {
+          setAuthError('No valid authentication found')
+          // Redirect to login if no valid token
+          push('/login')
+          return
+        }
+
+        // Check token expiration
+        if (tokenPayload.exp && tokenPayload.exp * 1000 < Date.now()) {
+          setAuthError('Authentication token has expired')
+          push('/login')
+          return
+        }
+
+        // Set profile data from token
+        setProfile({
+          userId: tokenPayload.user_id,
+          name: tokenPayload.full_name,
+          username: tokenPayload.user_name,
+          division: tokenPayload.division,
+          avatarUrl: tokenPayload.avatar_url,
+        })
+      } catch (error) {
+        console.error('Error loading user profile:', error)
+        setAuthError('Failed to load user profile')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadUserProfile()
+  }, [push])
 
   const handleLogout = async () => {
     try {
@@ -36,8 +141,44 @@ export default function SettingsPage() {
       toast.success(message)
       push('/login')
     } catch (error: unknown) {
-      toast.error((error as Error).message)
+      const errorMessage =
+        error instanceof Error ? error.message : 'Logout failed'
+      toast.error(errorMessage)
+      console.error('Logout error:', error)
     }
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="bg-background flex min-h-screen items-center justify-center">
+        <div className="space-y-4 text-center">
+          <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
+          <p className="text-muted-foreground text-sm">
+            Loading your settings...
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (authError || !profile) {
+    return (
+      <div className="bg-background flex min-h-screen items-center justify-center">
+        <div className="space-y-4 text-center">
+          <h2 className="text-destructive text-lg font-semibold">
+            Authentication Error
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            {authError || 'Unable to load user profile'}
+          </p>
+          <Button onClick={() => push('/login')} variant="outline" size="sm">
+            Return to Login
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -64,6 +205,9 @@ export default function SettingsPage() {
                       src={profile.avatarUrl}
                       alt={`${profile.name}'s avatar`}
                     />
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                      {generateInitials(profile.name)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="ml-4">
                     <h3 className="text-base leading-tight font-medium">
@@ -71,6 +215,9 @@ export default function SettingsPage() {
                     </h3>
                     <p className="text-muted-foreground mt-0.5 text-sm">
                       @{profile.username}
+                    </p>
+                    <p className="text-muted-foreground mt-0.5 text-xs">
+                      ID: {profile.userId}
                     </p>
                   </div>
                 </div>
