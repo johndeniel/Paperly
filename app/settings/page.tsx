@@ -20,14 +20,6 @@ import { logoutUser } from '@/server/action/logout-user'
 import { useRouter } from 'next/navigation'
 import { AuthTokenPayload } from '@/lib/types'
 
-interface UserProfile {
-  avatarUrl: string
-  name: string
-  username: string
-  division: string
-  userId: string
-}
-
 /**
  * Extracts and validates authentication token from browser cookies
  * @returns Decoded token payload or null if invalid/missing
@@ -89,7 +81,7 @@ export default function SettingsPage() {
   const { push } = useRouter()
 
   // State for user profile data
-  const [profile, setProfile] = React.useState<UserProfile | null>(null)
+  const [profile, setProfile] = React.useState<AuthTokenPayload | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [authError, setAuthError] = React.useState<string | null>(null)
 
@@ -102,28 +94,8 @@ export default function SettingsPage() {
 
         const tokenPayload = extractAuthTokenPayload()
 
-        if (!tokenPayload) {
-          setAuthError('No valid authentication found')
-          // Redirect to login if no valid token
-          push('/login')
-          return
-        }
-
-        // Check token expiration
-        if (tokenPayload.exp && tokenPayload.exp * 1000 < Date.now()) {
-          setAuthError('Authentication token has expired')
-          push('/login')
-          return
-        }
-
         // Set profile data from token
-        setProfile({
-          userId: tokenPayload.user_id,
-          name: tokenPayload.full_name,
-          username: tokenPayload.user_name,
-          division: tokenPayload.division,
-          avatarUrl: tokenPayload.avatar_url,
-        })
+        setProfile(tokenPayload)
       } catch (error) {
         console.error('Error loading user profile:', error)
         setAuthError('Failed to load user profile')
@@ -202,22 +174,22 @@ export default function SettingsPage() {
                 <div className="flex items-center">
                   <Avatar className="h-16 w-16">
                     <AvatarImage
-                      src={profile.avatarUrl}
-                      alt={`${profile.name}'s avatar`}
+                      src={profile.avatar_url}
+                      alt={`${profile.full_name}'s avatar`}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                      {generateInitials(profile.name)}
+                      {generateInitials(profile.full_name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="ml-4">
                     <h3 className="text-base leading-tight font-medium">
-                      {profile.name}
+                      {profile.full_name}
                     </h3>
                     <p className="text-muted-foreground mt-0.5 text-sm">
-                      @{profile.username}
+                      @{profile.user_name}
                     </p>
                     <p className="text-muted-foreground mt-0.5 text-xs">
-                      ID: {profile.userId}
+                      ID: {profile.user_id}
                     </p>
                   </div>
                 </div>
