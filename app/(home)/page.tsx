@@ -16,13 +16,13 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 
 // Task-specific Component Imports
-import { TaskList } from '@/app/(home)/components/task-list'
-import { TaskGrid } from '@/app/(home)/components/task-grid'
-import { TaskFilters } from '@/app/(home)/components/task-filters'
-import { TaskSort } from '@/app/(home)/components/task-sort'
-import { TaskSearch } from '@/app/(home)/components/task-search'
-import { ViewToggle } from '@/app/(home)/components/view-toggle'
-import { EmptyState } from '@/app/(home)/components/empty-state'
+import { TaskList } from '@/components/task-list'
+import { TaskGrid } from '@/components/task-grid'
+import { TaskFilters } from '@/components/task-filters'
+import { TaskSort } from '@/components/task-sort'
+import { TaskSearch } from '@/components/task-search'
+import { ViewToggle } from '@/components/view-toggle'
+import { EmptyState } from '@/components/empty-state'
 
 // Utility and Type Imports
 import { filterTasks, sortTasks, formatDateToString } from '@/lib/task-utils'
