@@ -32,4 +32,13 @@ Boost productivity with seamless teamwork:
 
 ---
 
+## 🧪 Test Account
+
+You can try out Paperly using the following test account:
+
+* **Username**: `johndeniel37` or `johndeniel97`
+* **Password**: `Password123`
+
+---
+
 > 💡 *Paperly helps you streamline document workflows, empower collaboration, and achieve maximum efficiency.*
