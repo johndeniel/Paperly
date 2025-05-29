@@ -7,11 +7,11 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import type { TaskSortOption, SortState } from '@/lib/types'
+import type { SortOption, SortState } from '@/lib/types'
 
 interface TaskSortProps {
   sortState: SortState
-  onToggleSort: (sortType: TaskSortOption) => void
+  onToggleSort: (sortType: SortOption) => void
 }
 
 /**

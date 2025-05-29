@@ -27,7 +27,7 @@ export interface UserEntity {
 export type ViewMode = 'list' | 'grid'
 
 // Task sort options
-export type TaskSortOption = 'date' | 'priority' | 'title' | 'status'
+export type SortOption = 'date' | 'priority' | 'title' | 'status'
 
 // Sort direction options
 export type SortDirection = 'asc' | 'desc'
@@ -36,7 +36,7 @@ export type SortDirection = 'asc' | 'desc'
 export type Priority = 'High' | 'Medium' | 'Low'
 
 // Task completion status types
-export type CompletionStatus =
+export type Status =
   | 'active'
   | 'overdue'
   | 'completed on time'
@@ -55,12 +55,12 @@ export interface Task {
 // Filter state interface
 export interface FilterState {
   priorityFilter: Priority[]
-  statusFilter: CompletionStatus[]
+  statusFilter: Status[]
   searchQuery: string
 }
 
 // Sort state interface
 export interface SortState {
-  sortBy: TaskSortOption
+  sortBy: SortOption
   sortDirection: SortDirection
 }

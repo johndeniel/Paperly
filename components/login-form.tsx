@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 // Form handling and validation
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 
 // UI Components
 import { Button } from '@/components/ui/button'
@@ -30,14 +29,8 @@ import { authenticateUser } from '@/server/action/authenticate-user'
 // Toast utility
 import { toast } from 'sonner'
 
-// Zod validation schema
-const loginFormSchema = z.object({
-  username: z.string().min(8, 'Username must be at least 8 characters.'),
-  password: z.string().min(8, 'Password must be at least 8 characters.'),
-})
-
-// TypeScript type derived from the validation schema
-export type LoginCredentials = z.infer<typeof loginFormSchema>
+// Import the schema and type from the new file
+import { loginFormSchema, LoginCredentials } from '@/lib/schemas'
 
 export function LoginForm() {
   const [loading, setLoading] = useState(false)

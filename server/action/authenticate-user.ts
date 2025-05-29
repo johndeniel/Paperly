@@ -1,4 +1,4 @@
-import { LoginCredentials } from '@/components/login-form'
+import { LoginCredentials } from '@/lib/schemas'
 
 export async function authenticateUser(
   credentials: LoginCredentials

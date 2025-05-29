@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import type { Task, CompletionStatus } from '@/lib/types'
+import type { Task, Status } from '@/lib/types'
 import { isPast, isToday, isBefore, isSameDay, parse } from 'date-fns'
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
 
@@ -19,7 +19,7 @@ const parseDate = (dateString: string): Date => {
  * @param task - The task object.
  * @returns A CompletionStatus value ("active", "overdue", "completed on time", or "completed late").
  */
-export const getCompletionStatus = (task: Task): CompletionStatus => {
+export const getCompletionStatus = (task: Task): Status => {
   // Determine if the task is completed by checking if dateCompleted exists
   const isCompleted = task.dateCompleted !== undefined
 

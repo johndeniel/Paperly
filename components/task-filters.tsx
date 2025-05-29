@@ -10,18 +10,18 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import type { Priority, CompletionStatus, FilterState } from '@/lib/types'
+import type { Priority, Status, FilterState } from '@/lib/types'
 
 interface TaskFiltersProps {
   filterState: FilterState
   onTogglePriorityFilter: (priority: Priority) => void
-  onToggleStatusFilter: (status: CompletionStatus) => void
+  onToggleStatusFilter: (status: Status) => void
   onClearFilters: () => void
 }
 
 // Define filter options for priority and status
 const PRIORITY_OPTIONS: Priority[] = ['High', 'Medium', 'Low']
-const STATUS_OPTIONS: CompletionStatus[] = [
+const STATUS_OPTIONS: Status[] = [
   'active',
   'overdue',
   'completed on time',

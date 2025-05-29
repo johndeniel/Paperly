@@ -1,5 +1,5 @@
 import { format, parse, isPast, isToday, isBefore, isSameDay } from 'date-fns'
-import type { Task, CompletionStatus, Priority } from '@/lib/types'
+import type { Task, Status, Priority } from '@/lib/types'
 
 /**
  * Parse date string from dd-MM-yyyy format to JavaScript Date
@@ -26,7 +26,7 @@ export const formatDateToString = (date: Date): string => {
  * @param task Task object
  * @returns CompletionStatus (active, overdue, completed on time, or completed late)
  */
-export const getCompletionStatus = (task: Task): CompletionStatus => {
+export const getCompletionStatus = (task: Task): Status => {
   // Determine if the task is completed by checking if dateCompleted exists
   const isCompleted = task.dateCompleted !== undefined
 
@@ -59,7 +59,7 @@ export const filterTasks = (
   tasks: Task[],
   searchQuery: string,
   priorityFilter: Priority[],
-  statusFilter: CompletionStatus[]
+  statusFilter: Status[]
 ): Task[] => {
   return tasks.filter(task => {
     // Search filter
@@ -123,4 +123,30 @@ export const sortTasks = (
         : b.title.localeCompare(a.title)
     }
   })
+}
+
+/**
+ * Checks if a task's due date is the same as the given day.
+ *
+ * @param task - The task to check.
+ * @param day - The day to compare against.
+ * @returns Boolean indicating if the task is on the given day.
+ */
+export const isTaskOnDay = (task: Task, day: Date): boolean => {
+  const taskDate = parseDate(task.dueDate)
+  return (
+    taskDate.getDate() === day.getDate() &&
+    taskDate.getMonth() === day.getMonth() &&
+    taskDate.getFullYear() === day.getFullYear()
+  )
+}
+
+/**
+ * Checks if a date is today or in the future.
+ *
+ * @param day - The date to check.
+ * @returns Boolean indicating if the date is today or in the future.
+ */
+export const isCurrentOrFuture = (day: Date): boolean => {
+  return isToday(day) || day > new Date()
 }
