@@ -12,9 +12,8 @@ import type { Paperwork } from '@/lib/types'
  * Props for TaskGrid component.
  */
 interface TaskGridProps {
-  tasks: Paperwork[]
-  onTaskClick: (taskId: string) => void
-  onToggleTaskCompletion: (taskId: string, event: React.MouseEvent) => void
+  paperworks: Paperwork[]
+  onPaperworkClick: (taskId: string) => void
 }
 
 /**
@@ -34,11 +33,11 @@ const parseDate = (dateString: string): Date => {
  * @param tasks - Array of tasks to display.
  * @param onTaskClick - Callback function when a task card is clicked.
  */
-export function TaskGrid({ tasks, onTaskClick }: TaskGridProps) {
+export function PaperworkGrid({ paperworks, onPaperworkClick }: TaskGridProps) {
   return (
     // Grid container with responsive columns and gap between cards
     <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-      {tasks.map(task => {
+      {paperworks.map(task => {
         // Determine if the task is completed
         const isCompleted = task.actual_completion_date !== undefined
 
@@ -49,7 +48,7 @@ export function TaskGrid({ tasks, onTaskClick }: TaskGridProps) {
               'bg-background border-border/40 cursor-pointer overflow-hidden rounded-md border transition-colors',
               isCompleted && 'bg-muted/5' // Apply muted background if task is completed
             )}
-            onClick={() => onTaskClick(task.paperwork_id)}
+            onClick={() => onPaperworkClick(task.paperwork_id)}
           >
             {/* Card content container with fixed height */}
             <div className="flex h-[170px] flex-col p-3.5">

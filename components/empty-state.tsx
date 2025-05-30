@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button'
 interface EmptyStateProps {
   hasActiveFilters: boolean
   onClearFilters: () => void
-  onAddTask: () => void
+  onAddPaperwork: () => void
 }
 
 export function EmptyState({
   hasActiveFilters,
   onClearFilters,
-  onAddTask,
+  onAddPaperwork,
 }: EmptyStateProps) {
   return (
     <div className="flex h-full flex-col items-center justify-center py-12">
@@ -30,7 +30,7 @@ export function EmptyState({
           Clear all filters
         </Button>
       ) : (
-        <Button variant="default" size="sm" onClick={onAddTask}>
+        <Button variant="default" size="sm" onClick={onAddPaperwork}>
           <Plus className="mr-2 h-4 w-4" />
           New Paper
         </Button>

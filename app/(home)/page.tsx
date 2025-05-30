@@ -1,22 +1,20 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, X } from 'lucide-react'
-
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
-import { TaskList } from '@/components/task-list'
-import { TaskGrid } from '@/components/task-grid'
+import { PaperworkList } from '@/components/paperwork-list'
+import { PaperworkGrid } from '@/components/paperwork-grid'
 import { PaperworkFilter } from '@/components/paperwork-filter'
 import { PaperworkSorter } from '@/components/paperwork-sorter'
 import { PaperworkSearcher } from '@/components/paperwork-searcher'
 import { ViewToggle } from '@/components/view-toggle'
 import { EmptyState } from '@/components/empty-state'
 import { PaperworkSubmissionDialog } from '@/components/paperwork-submission-dialog'
-
 import { paperworkRetrieval } from '@/server/queries/paperwork-retrieval'
-import { filterTasks, sortTasks, formatDateToString } from '@/lib/task-utils'
+import { filterPaperworks, sortPaperworks } from '@/lib/task-utils'
 import type {
   Paperwork,
   Priority,
@@ -25,20 +23,39 @@ import type {
   SortOption,
 } from '@/lib/types'
 
+// Helper function to toggle items in an array
+const _toggleArrayItem = <T,>(array: T[], item: T): T[] =>
+  array.includes(item) ? array.filter(i => i !== item) : [...array, item]
+
+// Helper component for rendering filter pills
+const FilterPillDisplay: React.FC<{
+  label: string
+  onRemove: () => void
+}> = ({ label, onRemove }) => (
+  <div className="bg-muted flex items-center gap-1 rounded-full px-2 py-1">
+    <span>{label}</span>
+    <Button size="icon" className="h-4 w-4" onClick={onRemove}>
+      <X className="h-3 w-3" />
+    </Button>
+  </div>
+)
+
 export default function Home() {
   const router = useRouter()
 
+  // State Hooks
   const [paper, setPaper] = useState<Paperwork[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('list')
-  const [addTaskDialogOpen, setAddTaskDialogOpen] = useState(false)
+  const [addPaperworkDialogOpen, setAddPaperworkDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [priorityFilter, setPriorityFilter] = useState<Priority[]>([])
   const [statusFilter, setStatusFilter] = useState<Status[]>([])
   const [sortBy, setSortBy] = useState<SortOption>('date')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
+  // Effect Hooks
   useEffect(() => {
     paperworkRetrieval()
       .then(setPaper)
@@ -46,29 +63,30 @@ export default function Home() {
       .finally(() => setIsLoading(false))
   }, [])
 
-  const filteredTasks = filterTasks(
+  // Derived State/Computations
+  const filteredPaperworks = filterPaperworks(
     paper,
     searchQuery,
     priorityFilter,
     statusFilter
   )
 
-  const sortedTasks = sortTasks(filteredTasks, sortBy, sortDirection)
+  const sortedPaperworks = sortPaperworks(
+    filteredPaperworks,
+    sortBy,
+    sortDirection
+  )
+
   const activeFiltersCount =
     priorityFilter.length + statusFilter.length + (searchQuery ? 1 : 0)
 
+  // Event Handlers & Actions
   const togglePriorityFilter = (priority: Priority) => {
-    setPriorityFilter(prev =>
-      prev.includes(priority)
-        ? prev.filter(p => p !== priority)
-        : [...prev, priority]
-    )
+    setPriorityFilter(prev => _toggleArrayItem(prev, priority))
   }
 
   const toggleStatusFilter = (status: Status) => {
-    setStatusFilter(prev =>
-      prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]
-    )
+    setStatusFilter(prev => _toggleArrayItem(prev, status))
   }
 
   const clearFilters = () => {
@@ -79,37 +97,24 @@ export default function Home() {
 
   const toggleSort = (sortType: SortOption) => {
     if (sortBy === sortType) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+      setSortDirection(prevDirection =>
+        prevDirection === 'asc' ? 'desc' : 'asc'
+      )
     } else {
       setSortBy(sortType)
       setSortDirection('asc')
     }
   }
 
-  const handleTaskClick = (taskId: string) => {
-    router.push(`/document/${taskId}`)
+  const handlePaperworkClick = (paperworkId: string) => {
+    router.push(`/document/${paperworkId}`)
   }
 
-  const toggleTaskCompletion = (taskId: string, event: React.MouseEvent) => {
-    event.stopPropagation()
-    setPaper(prev =>
-      prev.map(task =>
-        task.paperwork_id === taskId
-          ? {
-              ...task,
-              dateCompleted: task.actual_completion_date
-                ? undefined
-                : formatDateToString(new Date()),
-            }
-          : task
-      )
-    )
+  const addNewPaperwork = (newPaperwork: Paperwork) => {
+    setPaper(prev => [...prev, newPaperwork])
   }
 
-  const addNewTask = (newTask: Paperwork) => {
-    setPaper(prev => [...prev, newTask])
-  }
-
+  // Loading State UI
   if (isLoading) {
     return (
       <div className="container mx-auto flex h-screen items-center justify-center">
@@ -118,6 +123,7 @@ export default function Home() {
     )
   }
 
+  // Main Component Render
   return (
     <div className="container mx-auto flex h-screen flex-col px-4 py-12">
       <div className="flex flex-grow flex-col space-y-4">
@@ -148,7 +154,7 @@ export default function Home() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => setAddTaskDialogOpen(true)} size="sm">
+            <Button onClick={() => setAddPaperworkDialogOpen(true)} size="sm">
               <Plus className="mr-2 h-4 w-4" />
               New Paper
             </Button>
@@ -158,84 +164,65 @@ export default function Home() {
 
         {/* Active Filters */}
         {activeFiltersCount > 0 && (
-          <div className="text-muted-foreground flex items-center gap-2 text-xs">
+          <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
             <span>Filters:</span>
             {searchQuery && (
-              <div className="bg-muted flex items-center gap-1 rounded-full px-2 py-1">
-                <span>Title: {searchQuery}</span>
-                <Button
-                  size="icon"
-                  className="h-4 w-4"
-                  onClick={() => setSearchQuery('')}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
+              <FilterPillDisplay
+                label={`Title: ${searchQuery}`}
+                onRemove={() => setSearchQuery('')}
+              />
             )}
             {priorityFilter.map(priority => (
-              <div
+              <FilterPillDisplay
                 key={priority}
-                className="bg-muted flex items-center gap-1 rounded-full px-2 py-1"
-              >
-                <span>{priority} Priority</span>
-                <Button
-                  size="icon"
-                  className="h-4 w-4"
-                  onClick={() => togglePriorityFilter(priority)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
+                label={`${priority} Priority`}
+                onRemove={() => togglePriorityFilter(priority)}
+              />
             ))}
             {statusFilter.map(status => (
-              <div
+              <FilterPillDisplay
                 key={status}
-                className="bg-muted flex items-center gap-1 rounded-full px-2 py-1"
-              >
-                <span>{status}</span>
-                <Button
-                  size="icon"
-                  className="h-4 w-4"
-                  onClick={() => toggleStatusFilter(status)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
+                label={status}
+                onRemove={() => toggleStatusFilter(status)}
+              />
             ))}
-            <Button size="sm" onClick={clearFilters}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="text-xs"
+            >
               Clear all
             </Button>
           </div>
         )}
 
-        {/* Tasks Display */}
-        <ScrollArea className="h-[670px]">
-          {sortedTasks.length === 0 ? (
+        {/* Paperworks Display */}
+        <ScrollArea className="h-[calc(100vh-200px)]">
+          {sortedPaperworks.length === 0 ? (
             <EmptyState
               hasActiveFilters={activeFiltersCount > 0}
               onClearFilters={clearFilters}
-              onAddTask={() => setAddTaskDialogOpen(true)}
+              onAddPaperwork={() => setAddPaperworkDialogOpen(true)}
             />
           ) : viewMode === 'list' ? (
-            <TaskList
-              tasks={sortedTasks}
-              onTaskClick={handleTaskClick}
-              onToggleTaskCompletion={toggleTaskCompletion}
+            <PaperworkList
+              paperworks={sortedPaperworks}
+              onPaperworkClick={handlePaperworkClick}
             />
           ) : (
-            <TaskGrid
-              tasks={sortedTasks}
-              onTaskClick={handleTaskClick}
-              onToggleTaskCompletion={toggleTaskCompletion}
+            <PaperworkGrid
+              paperworks={sortedPaperworks}
+              onPaperworkClick={handlePaperworkClick}
             />
           )}
         </ScrollArea>
       </div>
 
       <PaperworkSubmissionDialog
-        open={addTaskDialogOpen}
-        onOpenChange={setAddTaskDialogOpen}
-        onPaperworkSubmit={addNewTask}
+        open={addPaperworkDialogOpen}
+        onOpenChange={setAddPaperworkDialogOpen}
+        onPaperworkSubmit={addNewPaperwork}
         defaultCompletionDate={new Date(2026, 0, 1)}
       />
     </div>

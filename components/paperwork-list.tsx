@@ -8,12 +8,11 @@ import { StatusBadge } from '@/components/status-badge'
 import type { Paperwork } from '@/lib/types'
 
 interface TaskListProps {
-  tasks: Paperwork[]
-  onTaskClick: (taskId: string) => void
-  onToggleTaskCompletion: (taskId: string, event: React.MouseEvent) => void
+  paperworks: Paperwork[]
+  onPaperworkClick: (taskId: string) => void
 }
 
-export function TaskList({ tasks, onTaskClick }: TaskListProps) {
+export function PaperworkList({ paperworks, onPaperworkClick }: TaskListProps) {
   // Function to parse a date string in "dd-MM-yyyy" format into a Date object
   const parseDate = (dateString: string): Date =>
     parse(dateString, 'dd-MM-yyyy', new Date())
@@ -21,7 +20,7 @@ export function TaskList({ tasks, onTaskClick }: TaskListProps) {
   return (
     // Container with vertical spacing and padding
     <div className="space-y-2 p-4">
-      {tasks.map(task => {
+      {paperworks.map(task => {
         // Determine if the task is completed by checking if dateCompleted exists
         const isCompleted = task.actual_completion_date !== undefined
 
@@ -35,7 +34,7 @@ export function TaskList({ tasks, onTaskClick }: TaskListProps) {
               'hover:border-border/10 border border-transparent',
               isCompleted && 'bg-muted/5 opacity-80'
             )}
-            onClick={() => onTaskClick(task.paperwork_id)}
+            onClick={() => onPaperworkClick(task.paperwork_id)}
           >
             {/* Content container for task details */}
             <div className="min-w-0 flex-grow space-y-1.5">

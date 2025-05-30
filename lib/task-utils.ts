@@ -75,14 +75,14 @@ export const getCompletionStatus = (task: Paperwork): Status => {
  * @param statusFilter Array of status filters
  * @returns Filtered array of tasks
  */
-export const filterTasks = (
+export const filterPaperworks = (
   tasks: Paperwork[],
   searchQuery: string,
   priorityFilter: Priority[],
   statusFilter: Status[]
 ): Paperwork[] => {
   if (!Array.isArray(tasks)) {
-    console.warn('filterTasks: tasks is not an array', tasks)
+    console.warn('filterPaperworks: tasks is not an array', tasks)
     return []
   }
 
@@ -123,13 +123,13 @@ export const filterTasks = (
  * @param sortDirection Sort direction ("asc" | "desc")
  * @returns Sorted array of tasks
  */
-export const sortTasks = (
+export const sortPaperworks = (
   tasks: Paperwork[],
   sortBy: 'date' | 'priority' | 'title' | 'status',
   sortDirection: 'asc' | 'desc'
 ): Paperwork[] => {
   if (!Array.isArray(tasks)) {
-    console.warn('sortTasks: tasks is not an array', tasks)
+    console.warn('sortPaperworks: tasks is not an array', tasks)
     return []
   }
 
