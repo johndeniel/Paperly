@@ -6,13 +6,13 @@ import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { PriorityBadge } from '@/components/priority-badge'
 import { StatusBadge } from '@/components/status-badge'
-import type { Task } from '@/lib/types'
+import type { Paperwork } from '@/lib/types'
 
 /**
  * Props for TaskGrid component.
  */
 interface TaskGridProps {
-  tasks: Task[]
+  tasks: Paperwork[]
   onTaskClick: (taskId: string) => void
   onToggleTaskCompletion: (taskId: string, event: React.MouseEvent) => void
 }
@@ -40,16 +40,16 @@ export function TaskGrid({ tasks, onTaskClick }: TaskGridProps) {
     <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {tasks.map(task => {
         // Determine if the task is completed
-        const isCompleted = task.dateCompleted !== undefined
+        const isCompleted = task.actual_completion_date !== undefined
 
         return (
           <div
-            key={task.id}
+            key={task.paperwork_id}
             className={cn(
               'bg-background border-border/40 cursor-pointer overflow-hidden rounded-md border transition-colors',
               isCompleted && 'bg-muted/5' // Apply muted background if task is completed
             )}
-            onClick={() => onTaskClick(task.id)}
+            onClick={() => onTaskClick(task.paperwork_id)}
           >
             {/* Card content container with fixed height */}
             <div className="flex h-[170px] flex-col p-3.5">
@@ -69,14 +69,14 @@ export function TaskGrid({ tasks, onTaskClick }: TaskGridProps) {
                     textDecoration: isCompleted ? 'line-through' : 'none',
                   }}
                 >
-                  {task.title}
+                  {task.paper_title}
                 </h3>
                 {/* Priority Badge */}
-                <PriorityBadge priority={task.priority} />
+                <PriorityBadge priority={task.processing_priority} />
               </div>
 
               {/* Optional description section */}
-              {task.description && (
+              {task.paper_description && (
                 <p
                   className={cn(
                     'text-muted-foreground mb-auto h-9 text-xs',
@@ -92,7 +92,7 @@ export function TaskGrid({ tasks, onTaskClick }: TaskGridProps) {
                     textDecoration: isCompleted ? 'line-through' : 'none',
                   }}
                 >
-                  {task.description}
+                  {task.paper_description}
                 </p>
               )}
 
@@ -103,8 +103,8 @@ export function TaskGrid({ tasks, onTaskClick }: TaskGridProps) {
                   {/* Display completion date if completed; otherwise, show due date */}
                   <span>
                     {isCompleted
-                      ? `Completed on ${format(parseDate(task.dateCompleted || task.dueDate), 'MMM d, yyyy')}`
-                      : `Due on ${format(parseDate(task.dueDate), 'MMM d, yyyy')}`}
+                      ? `Completed on ${format(parseDate(task.actual_completion_date || task.target_completion_date), 'MMM d, yyyy')}`
+                      : `Due on ${format(parseDate(task.target_completion_date), 'MMM d, yyyy')}`}
                   </span>
                   {/* Status Badge */}
                   <StatusBadge task={task} />

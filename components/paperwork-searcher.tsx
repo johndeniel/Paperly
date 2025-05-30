@@ -4,16 +4,15 @@ import { Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-interface TaskSearchProps {
+interface PaperworkSearchProps {
   searchQuery: string
   onSearchChange: (query: string) => void
 }
 
-/**
- * TaskSearch component provides a search input for filtering tasks by title.
- * It includes a clear button when the search input contains text.
- */
-export function TaskSearch({ searchQuery, onSearchChange }: TaskSearchProps) {
+export function PaperworkSearcher({
+  searchQuery,
+  onSearchChange,
+}: PaperworkSearchProps) {
   return (
     // Container for the search input with relative positioning
     <div className="relative max-w-md flex-grow">
@@ -22,7 +21,7 @@ export function TaskSearch({ searchQuery, onSearchChange }: TaskSearchProps) {
 
       {/* Search input field */}
       <Input
-        placeholder="Search Document titles..."
+        placeholder="Search paperwork titles..."
         value={searchQuery}
         onChange={e => onSearchChange(e.target.value)}
         className="h-9 pl-9"

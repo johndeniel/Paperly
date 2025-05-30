@@ -5,10 +5,10 @@ import { format, parse } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { PriorityBadge } from '@/components/priority-badge'
 import { StatusBadge } from '@/components/status-badge'
-import type { Task } from '@/lib/types'
+import type { Paperwork } from '@/lib/types'
 
 interface TaskListProps {
-  tasks: Task[]
+  tasks: Paperwork[]
   onTaskClick: (taskId: string) => void
   onToggleTaskCompletion: (taskId: string, event: React.MouseEvent) => void
 }
@@ -23,19 +23,19 @@ export function TaskList({ tasks, onTaskClick }: TaskListProps) {
     <div className="space-y-2 p-4">
       {tasks.map(task => {
         // Determine if the task is completed by checking if dateCompleted exists
-        const isCompleted = task.dateCompleted !== undefined
+        const isCompleted = task.actual_completion_date !== undefined
 
         return (
           // Task card container with hover effects and conditional styling for completed tasks
           <div
-            key={task.id}
+            key={task.paperwork_id}
             className={cn(
               'group flex items-center gap-4 rounded-lg px-4 py-3 transition-all duration-200',
               'cursor-pointer',
               'hover:border-border/10 border border-transparent',
               isCompleted && 'bg-muted/5 opacity-80'
             )}
-            onClick={() => onTaskClick(task.id)}
+            onClick={() => onTaskClick(task.paperwork_id)}
           >
             {/* Content container for task details */}
             <div className="min-w-0 flex-grow space-y-1.5">
@@ -47,24 +47,24 @@ export function TaskList({ tasks, onTaskClick }: TaskListProps) {
                     isCompleted && 'text-muted-foreground line-through'
                   )}
                 >
-                  {task.title}
+                  {task.paper_title}
                 </h3>
                 {/* Badge container with status and priority icons */}
                 <div className="flex items-center gap-2 opacity-80 transition-opacity group-hover:opacity-100">
                   <StatusBadge task={task} />
-                  <PriorityBadge priority={task.priority} />
+                  <PriorityBadge priority={task.processing_priority} />
                 </div>
               </div>
 
               {/* Optional description section, truncated for layout */}
-              {task.description && (
+              {task.paper_description && (
                 <p
                   className={cn(
                     'text-muted-foreground max-w-full truncate text-xs',
                     isCompleted && 'line-through opacity-60'
                   )}
                 >
-                  {task.description}
+                  {task.paper_description}
                 </p>
               )}
 
@@ -73,10 +73,13 @@ export function TaskList({ tasks, onTaskClick }: TaskListProps) {
                 <span>
                   {isCompleted
                     ? `Completed on ${format(
-                        parseDate(task.dateCompleted || task.dueDate),
+                        parseDate(
+                          task.actual_completion_date ||
+                            task.target_completion_date
+                        ),
                         'MMMM d, yyyy'
                       )}`
-                    : `Due on ${format(parseDate(task.dueDate), 'MMMM d, yyyy')}`}
+                    : `Due on ${format(parseDate(task.target_completion_date), 'MMMM d, yyyy')}`}
                 </span>
               </div>
             </div>

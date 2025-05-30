@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { Priority, Status, FilterState } from '@/lib/types'
 
-interface TaskFiltersProps {
+interface PaperworkFilterProps {
   filterState: FilterState
   onTogglePriorityFilter: (priority: Priority) => void
   onToggleStatusFilter: (status: Status) => void
@@ -28,12 +28,12 @@ const STATUS_OPTIONS: Status[] = [
   'completed late',
 ]
 
-export function TaskFilters({
+export function PaperworkFilter({
   filterState,
   onTogglePriorityFilter,
   onToggleStatusFilter,
   onClearFilters,
-}: TaskFiltersProps) {
+}: PaperworkFilterProps) {
   const { priorityFilter, statusFilter, searchQuery } = filterState
 
   // Calculate the number of active filters to display
@@ -61,15 +61,6 @@ export function TaskFilters({
         <Button variant="outline" size="sm" className="h-9">
           <Filter className="mr-2 h-4 w-4 opacity-70" />
           Filters
-          {/* Display active filter count if filters are applied */}
-          {activeFiltersCount > 0 && (
-            <span
-              className="bg-primary text-primary-foreground ml-2 flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
-              aria-label={`${activeFiltersCount} active filters`}
-            >
-              {activeFiltersCount}
-            </span>
-          )}
         </Button>
       </DropdownMenuTrigger>
 

@@ -9,16 +9,15 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { SortOption, SortState } from '@/lib/types'
 
-interface TaskSortProps {
+interface PaperworkSorterProps {
   sortState: SortState
   onToggleSort: (sortType: SortOption) => void
 }
 
-/**
- * TaskSort component provides UI for sorting tasks by different criteria.
- * It manages the dropdown menu and indicates the selected sort direction.
- */
-export function TaskSort({ sortState, onToggleSort }: TaskSortProps) {
+export function PaperworkSorter({
+  sortState,
+  onToggleSort,
+}: PaperworkSorterProps) {
   const { sortBy, sortDirection } = sortState
 
   return (

@@ -8,21 +8,27 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { TaskList } from '@/components/task-list'
 import { TaskGrid } from '@/components/task-grid'
-import { TaskFilters } from '@/components/task-filters'
-import { TaskSort } from '@/components/task-sort'
-import { TaskSearch } from '@/components/task-search'
+import { PaperworkFilter } from '@/components/paperwork-filter'
+import { PaperworkSorter } from '@/components/paperwork-sorter'
+import { PaperworkSearcher } from '@/components/paperwork-searcher'
 import { ViewToggle } from '@/components/view-toggle'
 import { EmptyState } from '@/components/empty-state'
-import { PaperSubmissionDialog } from '@/components/paper-submission-dialog'
+import { PaperworkSubmissionDialog } from '@/components/paperwork-submission-dialog'
 
-import { paperRetrieval } from '@/server/queries/paper-retrieval'
+import { paperworkRetrieval } from '@/server/queries/paperwork-retrieval'
 import { filterTasks, sortTasks, formatDateToString } from '@/lib/task-utils'
-import type { Task, Priority, Status, ViewMode, SortOption } from '@/lib/types'
+import type {
+  Paperwork,
+  Priority,
+  Status,
+  ViewMode,
+  SortOption,
+} from '@/lib/types'
 
 export default function Home() {
   const router = useRouter()
 
-  const [paper, setPaper] = useState<Task[]>([])
+  const [paper, setPaper] = useState<Paperwork[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('list')
@@ -34,7 +40,7 @@ export default function Home() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
-    paperRetrieval()
+    paperworkRetrieval()
       .then(setPaper)
       .catch(err => setError(err.message))
       .finally(() => setIsLoading(false))
@@ -88,10 +94,10 @@ export default function Home() {
     event.stopPropagation()
     setPaper(prev =>
       prev.map(task =>
-        task.id === taskId
+        task.paperwork_id === taskId
           ? {
               ...task,
-              dateCompleted: task.dateCompleted
+              dateCompleted: task.actual_completion_date
                 ? undefined
                 : formatDateToString(new Date()),
             }
@@ -100,7 +106,7 @@ export default function Home() {
     )
   }
 
-  const addNewTask = (newTask: Task) => {
+  const addNewTask = (newTask: Paperwork) => {
     setPaper(prev => [...prev, newTask])
   }
 
@@ -118,7 +124,7 @@ export default function Home() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-medium">Documents</h1>
+            <h1 className="text-xl font-medium">Paperworks</h1>
             {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
         </div>
@@ -126,17 +132,17 @@ export default function Home() {
         {/* Controls */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <TaskSearch
+            <PaperworkSearcher
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
             />
-            <TaskFilters
+            <PaperworkFilter
               filterState={{ searchQuery, priorityFilter, statusFilter }}
               onTogglePriorityFilter={togglePriorityFilter}
               onToggleStatusFilter={toggleStatusFilter}
               onClearFilters={clearFilters}
             />
-            <TaskSort
+            <PaperworkSorter
               sortState={{ sortBy, sortDirection }}
               onToggleSort={toggleSort}
             />
@@ -226,10 +232,10 @@ export default function Home() {
         </ScrollArea>
       </div>
 
-      <PaperSubmissionDialog
+      <PaperworkSubmissionDialog
         open={addTaskDialogOpen}
         onOpenChange={setAddTaskDialogOpen}
-        onPaperSubmit={addNewTask}
+        onPaperworkSubmit={addNewTask}
         defaultCompletionDate={new Date(2026, 0, 1)}
       />
     </div>

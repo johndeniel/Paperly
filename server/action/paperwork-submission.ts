@@ -1,9 +1,11 @@
 import { PaperSubmissionFormValues } from '@/lib/schemas'
 import { format } from 'date-fns'
 
-export async function paperSubmission(formValues: PaperSubmissionFormValues) {
+export async function paperworkSubmission(
+  formValues: PaperSubmissionFormValues
+) {
   const apiBaseUrl = process.env.NEXT_PUBLIC_APP_URL
-  const submitPath = '/api/paper/submission'
+  const submitPath = '/api/paperwork/submission'
 
   const paperData = {
     paper_title: formValues.paper_title,

@@ -23,43 +23,35 @@ export interface UserEntity {
   department: string
 }
 
-// View mode options for task display
 export type ViewMode = 'list' | 'grid'
 
-// Task sort options
 export type SortOption = 'date' | 'priority' | 'title' | 'status'
 
-// Sort direction options
 export type SortDirection = 'asc' | 'desc'
 
-// Priority levels for tasks
 export type Priority = 'High' | 'Medium' | 'Low'
 
-// Task completion status types
 export type Status =
   | 'active'
   | 'overdue'
   | 'completed on time'
   | 'completed late'
 
-// Task interface
-export interface Task {
-  id: string
-  title: string
-  description: string
-  priority: Priority
-  dueDate: string
-  dateCompleted?: string
+export interface Paperwork {
+  paperwork_id: string
+  paper_title: string
+  paper_description: string
+  processing_priority: Priority
+  target_completion_date: string
+  actual_completion_date?: string
 }
 
-// Filter state interface
 export interface FilterState {
   priorityFilter: Priority[]
   statusFilter: Status[]
   searchQuery: string
 }
 
-// Sort state interface
 export interface SortState {
   sortBy: SortOption
   sortDirection: SortDirection

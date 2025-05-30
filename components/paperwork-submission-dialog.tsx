@@ -42,26 +42,26 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-import type { Priority, Task } from '@/lib/types'
+import { Paperwork } from '@/lib/types'
 import { formatDateToString } from '@/lib/task-utils'
-import { paperSubmission } from '@/server/action/paper-submission'
+import { paperworkSubmission } from '@/server/action/paperwork-submission'
 import { toast } from 'sonner'
 
 import { paperSubmissionSchema, PaperSubmissionFormValues } from '@/lib/schemas'
 
-interface PaperSubmissionDialogProps {
+interface PaperworkSubmissionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onPaperSubmit: (task: Task) => void
+  onPaperworkSubmit: (paperwork: Paperwork) => void
   defaultCompletionDate?: Date
 }
 
-export function PaperSubmissionDialog({
+export function PaperworkSubmissionDialog({
   open,
   onOpenChange,
-  onPaperSubmit,
+  onPaperworkSubmit,
   defaultCompletionDate,
-}: PaperSubmissionDialogProps) {
+}: PaperworkSubmissionDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<PaperSubmissionFormValues>({
@@ -80,18 +80,20 @@ export function PaperSubmissionDialog({
     setIsSubmitting(true)
 
     try {
-      const response = await paperSubmission(values)
+      const response = await paperworkSubmission(values)
 
-      const newTask: Task = {
-        id: response.paperwork_id,
-        title: values.paper_title,
-        description: values.paper_description,
-        priority: values.processing_priority as Priority,
-        dueDate: formatDateToString(values.target_completion_date),
-        dateCompleted: undefined,
+      const newPaperwork: Paperwork = {
+        paperwork_id: response.paperwork_id,
+        paper_title: values.paper_title,
+        paper_description: values.paper_description,
+        processing_priority: values.processing_priority,
+        target_completion_date: formatDateToString(
+          values.target_completion_date
+        ),
+        actual_completion_date: undefined,
       }
 
-      onPaperSubmit(newTask)
+      onPaperworkSubmit(newPaperwork)
       onOpenChange(false)
       form.reset()
       toast.success('Paperwork submitted successfully.')
@@ -107,9 +109,9 @@ export function PaperSubmissionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl px-6 py-8 sm:px-8">
         <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">New Paper</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Paperwork</DialogTitle>
           <DialogDescription>
-            Fill out the details below to add a new paper to your system.
+            Fill out the details below to add a new paperwork to your system.
           </DialogDescription>
         </DialogHeader>
 

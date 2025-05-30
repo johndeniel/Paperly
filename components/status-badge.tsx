@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import type { Task, Status } from '@/lib/types'
+import type { Paperwork, Status } from '@/lib/types'
 import { isPast, isToday, isBefore, isSameDay, parse } from 'date-fns'
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
 
@@ -19,19 +19,19 @@ const parseDate = (dateString: string): Date => {
  * @param task - The task object.
  * @returns A CompletionStatus value ("active", "overdue", "completed on time", or "completed late").
  */
-export const getCompletionStatus = (task: Task): Status => {
+export const getCompletionStatus = (task: Paperwork): Status => {
   // Determine if the task is completed by checking if dateCompleted exists
-  const isCompleted = task.dateCompleted !== undefined
+  const isCompleted = task.actual_completion_date !== undefined
 
   // If the task is not completed, check if it's overdue.
   if (!isCompleted) {
-    const dueDate = parseDate(task.dueDate)
+    const dueDate = parseDate(task.target_completion_date)
     return isPast(dueDate) && !isToday(dueDate) ? 'overdue' : 'active'
   }
 
   // If the task is completed, compare the completion date with the due date.
-  const dueDate = parseDate(task.dueDate)
-  const completedDate = parseDate(task.dateCompleted!)
+  const dueDate = parseDate(task.target_completion_date)
+  const completedDate = parseDate(task.actual_completion_date!)
 
   return isBefore(completedDate, dueDate) || isSameDay(completedDate, dueDate)
     ? 'completed on time'
@@ -43,7 +43,7 @@ export const getCompletionStatus = (task: Task): Status => {
  *
  * @param task - The task object.
  */
-export const StatusBadge = ({ task }: { task: Task }) => {
+export const StatusBadge = ({ task }: { task: Paperwork }) => {
   const status = getCompletionStatus(task)
 
   const statusConfig = {
