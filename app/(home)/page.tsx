@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Plus, X } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
-import { PaperworkList } from '@/components/paperwork-list'
-import { PaperworkGrid } from '@/components/paperwork-grid'
+import { PaperworkLayoutList } from '@/components/paperwork-layout-list'
+import { PaperworkLayoutGrid } from '@/components/paperwork-layout-grid'
 import { PaperworkFilter } from '@/components/paperwork-filter'
 import { PaperworkSorter } from '@/components/paperwork-sorter'
 import { PaperworkSearcher } from '@/components/paperwork-searcher'
@@ -206,12 +206,12 @@ export default function Home() {
               onAddPaperwork={() => setAddPaperworkDialogOpen(true)}
             />
           ) : viewMode === 'list' ? (
-            <PaperworkList
+            <PaperworkLayoutList
               paperworks={sortedPaperworks}
               onPaperworkClick={handlePaperworkClick}
             />
           ) : (
-            <PaperworkGrid
+            <PaperworkLayoutGrid
               paperworks={sortedPaperworks}
               onPaperworkClick={handlePaperworkClick}
             />

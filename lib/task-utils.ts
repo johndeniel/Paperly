@@ -1,3 +1,5 @@
+// the code bellow is a helper.ts
+
 import { format, parse, isPast, isToday, isBefore, isSameDay } from 'date-fns'
 import type { Paperwork, Status, Priority } from '@/lib/types'
 
@@ -29,6 +31,36 @@ export const formatDateToString = (date: Date): string => {
     console.warn('Failed to format date:', date)
     return format(new Date(), 'dd-MM-yyyy') // Return current date as fallback
   }
+}
+
+/**
+ * Check if paperwork is completed based on actual_completion_date
+ * @param paperwork Paperwork object
+ * @returns Boolean indicating if paperwork is completed
+ */
+export const isPaperworkCompleted = (paperwork: Paperwork): boolean => {
+  return paperwork.actual_completion_date !== undefined
+}
+
+/**
+ * Get formatted completion or due date string for paperwork
+ * @param paperwork Paperwork object
+ * @param dateFormat Date format string (default: 'MMMM d, yyyy')
+ * @returns Formatted date string with prefix
+ */
+export const getFormattedPaperworkDate = (
+  paperwork: Paperwork,
+  dateFormat: string = 'MMMM d, yyyy'
+): string => {
+  const isCompleted = isPaperworkCompleted(paperwork)
+
+  if (isCompleted) {
+    const completionDate =
+      paperwork.actual_completion_date || paperwork.target_completion_date
+    return `Completed on ${format(parseDate(completionDate), dateFormat)}`
+  }
+
+  return `Due on ${format(parseDate(paperwork.target_completion_date), dateFormat)}`
 }
 
 /**
