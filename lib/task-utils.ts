@@ -1,6 +1,15 @@
-// the code bellow is a helper.ts
-
-import { format, parse, isPast, isToday, isBefore, isSameDay } from 'date-fns'
+// helper.ts - Updated with additional functions
+import {
+  format,
+  parse,
+  isPast,
+  isToday,
+  isBefore,
+  isSameDay,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+} from 'date-fns'
 import type { Paperwork, Status, Priority } from '@/lib/types'
 
 /**
@@ -71,29 +80,23 @@ export const getFormattedPaperworkDate = (
  * @returns Status (active, overdue, completed on time, or completed late)
  */
 export const getCompletionStatus = (task: Paperwork): Status => {
-  // Check if task has valid target completion date
   if (!task.target_completion_date) {
-    return 'active' // Default status if no target date
+    return 'active'
   }
 
-  // Determine if the task is completed by checking if actual_completion_date exists and is not null/empty
   const isCompleted =
     task.actual_completion_date !== undefined &&
     task.actual_completion_date !== null &&
     task.actual_completion_date.trim() !== ''
 
   if (!isCompleted) {
-    // If task is not completed and due date is in the past (and not today), it's overdue; otherwise, it's active.
     const targetDate = parseDate(task.target_completion_date)
     return isPast(targetDate) && !isToday(targetDate) ? 'overdue' : 'active'
   }
 
-  // If task is completed, compare the completion date with the due date.
   const dueDate = parseDate(task.target_completion_date)
-  // Type assertion is safe here because we've already checked that actual_completion_date exists and is not empty
   const completedDate = parseDate(task.actual_completion_date!)
 
-  // If completed on or before due date, it's on time; otherwise, it's completed late.
   return isBefore(completedDate, dueDate) || isSameDay(completedDate, dueDate)
     ? 'completed on time'
     : 'completed late'
@@ -119,12 +122,10 @@ export const filterPaperworks = (
   }
 
   return tasks.filter(task => {
-    // Ensure task object has required properties
     if (!task || typeof task !== 'object') {
       return false
     }
 
-    // Search filter - search in multiple fields for better UX
     const searchTerm = searchQuery.toLowerCase().trim()
     const matchesSearch =
       searchQuery === '' ||
@@ -133,13 +134,11 @@ export const filterPaperworks = (
       task.paper_title?.toLowerCase().includes(searchTerm) ||
       task.paper_description?.toLowerCase().includes(searchTerm)
 
-    // Priority filter
     const matchesPriority =
       priorityFilter.length === 0 ||
       (task.processing_priority &&
         priorityFilter.includes(task.processing_priority))
 
-    // Status filter
     const taskStatus = getCompletionStatus(task)
     const matchesStatus =
       statusFilter.length === 0 || statusFilter.includes(taskStatus)
@@ -166,14 +165,11 @@ export const sortPaperworks = (
   }
 
   return [...tasks].sort((a, b) => {
-    // Ensure both tasks are valid objects
     if (!a || !b || typeof a !== 'object' || typeof b !== 'object') {
       return 0
     }
 
-    // Sort by selected criteria
     if (sortBy === 'date') {
-      // Handle cases where dates might be missing
       if (!a.target_completion_date && !b.target_completion_date) return 0
       if (!a.target_completion_date) return sortDirection === 'asc' ? 1 : -1
       if (!b.target_completion_date) return sortDirection === 'asc' ? -1 : 1
@@ -188,7 +184,6 @@ export const sortPaperworks = (
         Low: 1,
       }
 
-      // Handle cases where priority might be missing
       const priorityA = a.processing_priority
         ? priorityOrder[a.processing_priority] || 0
         : 0
@@ -200,7 +195,6 @@ export const sortPaperworks = (
         ? priorityA - priorityB
         : priorityB - priorityA
     } else if (sortBy === 'status') {
-      // Updated mapping to match Status values
       const statusOrder: Record<Status, number> = {
         overdue: 4,
         active: 3,
@@ -213,7 +207,6 @@ export const sortPaperworks = (
 
       return sortDirection === 'asc' ? statusA - statusB : statusB - statusA
     } else {
-      // Sort by title (default)
       const titleA = a.paper_title || ''
       const titleB = b.paper_title || ''
 
@@ -266,4 +259,150 @@ export const isCurrentOrFuture = (day: Date): boolean => {
     console.warn('Error checking if date is current or future:', error)
     return false
   }
+}
+
+// NEW HELPER FUNCTIONS ADDED BELOW
+
+/**
+ * Generate calendar weeks for a given month
+ * @param currentDate The current date to generate calendar for
+ * @returns Array of weeks, each containing 7 days (some may be null for empty cells)
+ */
+export const generateCalendarWeeks = (currentDate: Date): (Date | null)[][] => {
+  const monthStart = startOfMonth(currentDate)
+  const monthEnd = endOfMonth(currentDate)
+  const startDay = monthStart.getDay()
+  const endDay = 6 - monthEnd.getDay()
+
+  const calendarDays = [
+    ...Array(startDay).fill(null),
+    ...eachDayOfInterval({ start: monthStart, end: monthEnd }),
+    ...Array(endDay).fill(null),
+  ]
+
+  const weeks = []
+  for (let i = 0; i < calendarDays.length; i += 7) {
+    weeks.push(calendarDays.slice(i, i + 7))
+  }
+
+  return weeks
+}
+
+/**
+ * Group paperworks by their target completion date
+ * @param paperworks Array of paperwork items
+ * @returns Map with date strings as keys and arrays of paperworks as values
+ */
+export const groupPaperworksByDate = (
+  paperworks: Paperwork[]
+): Map<string, Paperwork[]> => {
+  const map = new Map<string, Paperwork[]>()
+  paperworks.forEach(paperwork => {
+    const dueDate = paperwork.target_completion_date.slice(0, 10)
+    map.set(dueDate, [...(map.get(dueDate) || []), paperwork])
+  })
+  return map
+}
+
+/**
+ * Get paperworks for a specific day
+ * @param day The date to get paperworks for
+ * @param paperworksByDate Map of paperworks grouped by date
+ * @returns Array of paperworks for the given day
+ */
+export const getPaperworksForDay = (
+  day: Date,
+  paperworksByDate: Map<string, Paperwork[]>
+): Paperwork[] => {
+  return paperworksByDate.get(formatDateToString(day).slice(0, 10)) || []
+}
+
+/**
+ * Determine the background color class for a calendar day based on paperwork status
+ * @param day The date to check
+ * @param paperworksByDate Map of paperworks grouped by date
+ * @returns CSS class string for background color
+ */
+export const getDayBackgroundColor = (
+  day: Date,
+  paperworksByDate: Map<string, Paperwork[]>
+): string => {
+  if (!day) return ''
+
+  const dayPaperworks = getPaperworksForDay(day, paperworksByDate)
+
+  const hasOverdue = dayPaperworks.some(
+    paperwork => getCompletionStatus(paperwork) === 'overdue'
+  )
+
+  if (hasOverdue) {
+    return 'bg-[hsl(var(--status-overdue-bg))] calendar-day-highlight'
+  }
+
+  if (dayPaperworks.length > 0) {
+    return 'bg-[hsl(var(--status-active-bg))] calendar-day-highlight'
+  }
+
+  return ''
+}
+
+/**
+ * Get priority border color class for paperwork
+ * @param priority The priority level
+ * @returns CSS class string for border color
+ */
+export const getPriorityBorderColor = (priority: Priority): string => {
+  switch (priority) {
+    case 'High':
+      return 'border-l-red-400'
+    case 'Medium':
+      return 'border-l-amber-400'
+    case 'Low':
+      return 'border-l-blue-400'
+    default:
+      return 'border-l-gray-400'
+  }
+}
+
+/**
+ * Get priority indicator color class for paperwork
+ * @param priority The priority level
+ * @returns CSS class string for background color
+ */
+export const getPriorityIndicatorColor = (priority: Priority): string => {
+  switch (priority) {
+    case 'High':
+      return 'bg-red-400'
+    case 'Medium':
+      return 'bg-amber-400'
+    case 'Low':
+      return 'bg-blue-400'
+    default:
+      return 'bg-gray-400'
+  }
+}
+
+/**
+ * Get visible and remaining paperworks for a day (used for calendar display)
+ * @param dayPaperworks Array of paperworks for a specific day
+ * @param maxVisible Maximum number of paperworks to show (default: 3)
+ * @returns Object with visible paperworks and remaining count
+ */
+export const getVisiblePaperworks = (
+  dayPaperworks: Paperwork[],
+  maxVisible: number = 3
+): { visible: Paperwork[]; remaining: number } => {
+  const visible = dayPaperworks.slice(0, maxVisible)
+  const remaining = dayPaperworks.length - visible.length
+
+  return { visible, remaining }
+}
+
+/**
+ * Format paperwork count text for display
+ * @param count Number of paperworks
+ * @returns Formatted string (e.g., "1 document", "3 documents")
+ */
+export const formatPaperworkCountText = (count: number): string => {
+  return `${count} ${count === 1 ? 'document' : 'documents'}`
 }

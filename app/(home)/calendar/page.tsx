@@ -1,48 +1,44 @@
 'use client'
 
-import type React from 'react'
+import React from 'react'
 import { useState, useEffect, useCallback, useMemo, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  isSameMonth,
-  isToday,
-  addMonths,
-  subMonths,
-} from 'date-fns'
+import { format, isSameMonth, isToday, addMonths, subMonths } from 'date-fns'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-
+import { TasksContext } from '@/lib/task-context'
+import { Separator } from '@/components/ui/separator'
+import { Paperwork } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { PriorityBadge } from '@/components/priority-badge'
+import { StatusBadge } from '@/components/status-badge'
+import { TaskDialog } from '@/components/task-dialog'
+import { PaperworkSubmissionDialog } from '@/components/paperwork-submission-dialog'
+import { paperworkRetrieval } from '@/server/queries/paperwork-retrieval'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { PriorityBadge } from '@/components/priority-badge'
-import { StatusBadge } from '@/components/status-badge'
-import { TaskDialog } from '@/components/task-dialog' // This might need a rename on your end to PaperworkDialog
-import { PaperworkSubmissionDialog } from '@/components/paperwork-submission-dialog'
-import { TasksContext } from '@/lib/task-context' // This might need a rename on your end to PaperworkContext
-import { Separator } from '@/components/ui/separator'
-import type { Paperwork } from '@/lib/types'
 import {
-  parseDate,
-  formatDateToString,
-  getCompletionStatus,
   isCurrentOrFuture,
-} from '@/lib/task-utils' // This might need a rename on your end to paperwork-utils
-import { paperworkRetrieval } from '@/server/queries/paperwork-retrieval'
+  generateCalendarWeeks,
+  groupPaperworksByDate,
+  getPaperworksForDay,
+  getDayBackgroundColor,
+  getPriorityBorderColor,
+  getPriorityIndicatorColor,
+  getVisiblePaperworks,
+  formatPaperworkCountText,
+  isPaperworkCompleted,
+  getFormattedPaperworkDate,
+} from '@/lib/task-utils'
 
 export default function Calendar(): React.ReactElement {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
   const [paperworks, setPaperworks] = useState<Paperwork[]>([])
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -68,31 +64,11 @@ export default function Calendar(): React.ReactElement {
       })
   }, [])
 
-  const { weeks } = useMemo(() => {
-    const monthStart = startOfMonth(currentDate)
-    const monthEnd = endOfMonth(currentDate)
-    const startDay = monthStart.getDay()
-    const endDay = 6 - monthEnd.getDay()
-    const calendarDays = [
-      ...Array(startDay).fill(null),
-      ...eachDayOfInterval({ start: monthStart, end: monthEnd }),
-      ...Array(endDay).fill(null),
-    ]
-    const weeksArr = []
-    for (let i = 0; i < calendarDays.length; i += 7) {
-      weeksArr.push(calendarDays.slice(i, i + 7))
-    }
-    return { weeks: weeksArr }
-  }, [currentDate])
-
-  const paperworksByDate = useMemo(() => {
-    const map = new Map<string, Paperwork[]>()
-    paperworks.forEach(paperwork => {
-      const dueDate = paperwork.target_completion_date.slice(0, 10)
-      map.set(dueDate, [...(map.get(dueDate) || []), paperwork])
-    })
-    return map
-  }, [paperworks])
+  const weeks = useMemo(() => generateCalendarWeeks(currentDate), [currentDate])
+  const paperworksByDate = useMemo(
+    () => groupPaperworksByDate(paperworks),
+    [paperworks]
+  )
 
   const handlePreviousMonth = useCallback(
     () => setCurrentDate(prevDate => subMonths(prevDate, 1)),
@@ -118,27 +94,6 @@ export default function Calendar(): React.ReactElement {
     [router]
   )
 
-  const getPaperworksForDay = useCallback(
-    (day: Date) =>
-      paperworksByDate.get(formatDateToString(day).slice(0, 10)) || [],
-    [paperworksByDate]
-  )
-
-  const getDayColor = useCallback(
-    (day: Date) => {
-      if (!day) return ''
-      const dayPaperworks = getPaperworksForDay(day)
-      return dayPaperworks.some(
-        paperwork => getCompletionStatus(paperwork) === 'overdue'
-      )
-        ? 'bg-[hsl(var(--status-overdue-bg))] calendar-day-highlight'
-        : dayPaperworks.length > 0
-          ? 'bg-[hsl(var(--status-active-bg))] calendar-day-highlight'
-          : ''
-    },
-    [getPaperworksForDay]
-  )
-
   const handleAddPaperwork = useCallback(
     (newPaperwork: Paperwork) => {
       if (selectedDate && newPaperwork.paper_title.trim()) {
@@ -159,7 +114,6 @@ export default function Calendar(): React.ReactElement {
     []
   )
 
-  // Loading State UI
   if (isLoading) {
     return (
       <div className="container mx-auto flex h-screen items-center justify-center">
@@ -170,7 +124,7 @@ export default function Calendar(): React.ReactElement {
 
   return (
     <TasksContext.Provider
-      value={{ tasks: paperworks, setTasks: setPaperworks }}
+      value={{ papers: paperworks, setPapers: setPaperworks }}
     >
       <TooltipProvider>
         <div className="container mx-auto flex h-screen flex-col px-4 py-12">
@@ -227,10 +181,13 @@ export default function Calendar(): React.ReactElement {
 
                 <div className="grid flex-grow grid-cols-7">
                   {weeks.flat().map((day, index) => {
-                    const dayPaperworks = day ? getPaperworksForDay(day) : []
-                    const visiblePaperworks = dayPaperworks.slice(0, 3)
-                    const remainingCount =
-                      dayPaperworks.length - visiblePaperworks.length
+                    const dayPaperworks = day
+                      ? getPaperworksForDay(day, paperworksByDate)
+                      : []
+                    const {
+                      visible: visiblePaperworks,
+                      remaining: remainingCount,
+                    } = getVisiblePaperworks(dayPaperworks)
 
                     return (
                       <div
@@ -255,7 +212,7 @@ export default function Calendar(): React.ReactElement {
                           <div
                             className={cn(
                               'flex h-full w-full flex-col p-1.5 transition-colors',
-                              getDayColor(day),
+                              getDayBackgroundColor(day, paperworksByDate),
                               !isSameMonth(day, currentDate) && 'opacity-40'
                             )}
                           >
@@ -281,10 +238,9 @@ export default function Calendar(): React.ReactElement {
                                     className={tooltipStyles.content}
                                   >
                                     <div className="p-2 text-xs">
-                                      {dayPaperworks.length}{' '}
-                                      {dayPaperworks.length === 1
-                                        ? 'document'
-                                        : 'documents'}{' '}
+                                      {formatPaperworkCountText(
+                                        dayPaperworks.length
+                                      )}{' '}
                                       on this day
                                     </div>
                                   </TooltipContent>
@@ -295,7 +251,7 @@ export default function Calendar(): React.ReactElement {
                             <div className="mt-0.5 space-y-0.5 overflow-hidden">
                               {visiblePaperworks.map(paperwork => {
                                 const isCompleted =
-                                  paperwork.actual_completion_date !== undefined
+                                  isPaperworkCompleted(paperwork)
                                 return (
                                   <Tooltip key={paperwork.paperwork_id}>
                                     <TooltipTrigger asChild>
@@ -304,15 +260,7 @@ export default function Calendar(): React.ReactElement {
                                           'bg-background/80 hover:bg-muted/60 flex cursor-pointer items-center gap-1 rounded-sm px-1 py-0.5 text-[9px]',
                                           isCompleted &&
                                             'text-muted-foreground line-through',
-                                          `border-l-2 ${
-                                            paperwork.processing_priority ===
-                                            'High'
-                                              ? 'border-l-red-400'
-                                              : paperwork.processing_priority ===
-                                                  'Medium'
-                                                ? 'border-l-amber-400'
-                                                : 'border-l-blue-400'
-                                          }`
+                                          `border-l-2 ${getPriorityBorderColor(paperwork.processing_priority)}`
                                         )}
                                       >
                                         <div className="truncate">
@@ -330,13 +278,9 @@ export default function Calendar(): React.ReactElement {
                                             <div
                                               className={cn(
                                                 'h-4 w-1 shrink-0 rounded-sm',
-                                                paperwork.processing_priority ===
-                                                  'High'
-                                                  ? 'bg-red-400'
-                                                  : paperwork.processing_priority ===
-                                                      'Medium'
-                                                    ? 'bg-amber-400'
-                                                    : 'bg-blue-400'
+                                                getPriorityIndicatorColor(
+                                                  paperwork.processing_priority
+                                                )
                                               )}
                                             />
                                             <h4
@@ -375,28 +319,12 @@ export default function Calendar(): React.ReactElement {
                                         )}
 
                                         <div className="flex items-center justify-between text-[10px]">
-                                          {isCompleted ? (
-                                            <p className="text-muted-foreground font-medium">
-                                              Completed on{' '}
-                                              {format(
-                                                parseDate(
-                                                  paperwork.actual_completion_date ||
-                                                    paperwork.target_completion_date
-                                                ),
-                                                'MMMM d, yyyy'
-                                              )}
-                                            </p>
-                                          ) : (
-                                            <p className="text-muted-foreground font-medium">
-                                              Due on{' '}
-                                              {format(
-                                                parseDate(
-                                                  paperwork.target_completion_date
-                                                ),
-                                                'MMMM d, yyyy'
-                                              )}
-                                            </p>
-                                          )}
+                                          <p className="text-muted-foreground font-medium">
+                                            {getFormattedPaperworkDate(
+                                              paperwork,
+                                              'MMMM d, yyyy'
+                                            )}
+                                          </p>
                                           <StatusBadge task={paperwork} />
                                         </div>
                                       </div>
@@ -432,6 +360,7 @@ export default function Calendar(): React.ReactElement {
           />
 
           <PaperworkSubmissionDialog
+            key={selectedDate?.getTime()}
             open={isAddPaperworkOpen}
             onOpenChange={setIsAddPaperworkOpen}
             onPaperworkSubmit={handleAddPaperwork}
