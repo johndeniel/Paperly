@@ -107,7 +107,7 @@ export default function Home() {
   }
 
   const handlePaperworkClick = (paperworkId: string) => {
-    router.push(`/document/${paperworkId}`)
+    router.push(`/paperwork/${paperworkId}`)
   }
 
   const addNewPaperwork = (newPaperwork: Paperwork) => {
@@ -118,7 +118,7 @@ export default function Home() {
   if (isLoading) {
     return (
       <div className="container mx-auto flex h-screen items-center justify-center">
-        <div className="animate-pulse text-lg">Loading documents...</div>
+        <div className="animate-pulse text-lg">Loading Paperworks...</div>
       </div>
     )
   }

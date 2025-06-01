@@ -21,7 +21,7 @@ export function PaperworkSearcher({
 
       {/* Search input field */}
       <Input
-        placeholder="Search paperwork titles..."
+        placeholder="Search"
         value={searchQuery}
         onChange={e => onSearchChange(e.target.value)}
         className="h-9 pl-9"
