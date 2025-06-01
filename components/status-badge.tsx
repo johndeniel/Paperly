@@ -1,86 +1,53 @@
-import { cn } from '@/lib/utils'
-import type { Paperwork, Status } from '@/lib/types'
-import { isPast, isToday, isBefore, isSameDay, parse } from 'date-fns'
-import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { Paperwork } from '@/lib/types'
 
-/**
- * Parses a date string in "dd-MM-yyyy" format into a JavaScript Date object.
- * @param dateString - The date string in MySQL format (dd-MM-yyyy).
- * @returns A Date object.
- */
-const parseDate = (dateString: string): Date => {
-  return parse(dateString, 'dd-MM-yyyy', new Date())
-}
+import { getCompletionStatus } from '@/lib/task-utils'
 
-/**
- * Determines the completion status of a task.
- * Uses the existence of dateCompleted to decide if a task is complete.
- *
- * @param task - The task object.
- * @returns A CompletionStatus value ("active", "overdue", "completed on time", or "completed late").
- */
-export const getCompletionStatus = (task: Paperwork): Status => {
-  // Determine if the task is completed by checking if dateCompleted exists
-  const isCompleted = task.actual_completion_date !== undefined
-
-  // If the task is not completed, check if it's overdue.
-  if (!isCompleted) {
-    const dueDate = parseDate(task.target_completion_date)
-    return isPast(dueDate) && !isToday(dueDate) ? 'overdue' : 'active'
+const statusBadgeVariants = cva(
+  'inline-flex items-center font-medium transition-colors',
+  {
+    variants: {
+      status: {
+        'completed on time':
+          'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-950 dark:text-green-300 dark:border-green-800',
+        'completed late':
+          'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800',
+        active:
+          'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800',
+        overdue:
+          'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/15',
+      },
+    },
+    defaultVariants: {
+      status: 'active',
+    },
   }
+)
 
-  // If the task is completed, compare the completion date with the due date.
-  const dueDate = parseDate(task.target_completion_date)
-  const completedDate = parseDate(task.actual_completion_date!)
-
-  return isBefore(completedDate, dueDate) || isSameDay(completedDate, dueDate)
-    ? 'completed on time'
-    : 'completed late'
+interface StatusBadgeProps extends VariantProps<typeof statusBadgeVariants> {
+  task: Paperwork
 }
 
-/**
- * StatusBadge component renders a badge showing the task's completion status.
- *
- * @param task - The task object.
- */
-export const StatusBadge = ({ task }: { task: Paperwork }) => {
+export const StatusBadge = ({ task }: StatusBadgeProps) => {
   const status = getCompletionStatus(task)
 
-  const statusConfig = {
-    'completed on time': {
-      label: 'Completed On Time',
-      className: 'text-green-700 bg-green-50 border-green-200',
-      icon: <CheckCircle className="mr-1 h-2.5 w-2.5" />,
-    },
-    'completed late': {
-      label: 'Completed Late',
-      className: 'text-amber-700 bg-amber-50 border-amber-200',
-      icon: <Clock className="mr-1 h-2.5 w-2.5" />,
-    },
-    active: {
-      label: 'Active',
-      className: 'text-blue-700 bg-blue-50 border-blue-200',
-      icon: null,
-    },
-    overdue: {
-      label: 'Overdue',
-      className: 'text-red-700 bg-red-50 border-red-200',
-      icon: <AlertCircle className="mr-1 h-2.5 w-2.5" />,
-    },
+  const statusLabels = {
+    'completed on time': 'Completed On Time',
+    'completed late': 'Completed Late',
+    active: 'Active',
+    overdue: 'Overdue',
   }
 
-  const { label, className, icon } = statusConfig[status]
-
   return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium',
-        'shadow-sm',
-        className
-      )}
+    <Badge
+      variant="outline"
+      className={statusBadgeVariants({ status })}
+      data-status={status}
     >
-      {icon}
-      {label}
-    </span>
+      {statusLabels[status]}
+    </Badge>
   )
 }
+
+export { statusBadgeVariants }

@@ -1,39 +1,40 @@
-import { cn } from '@/lib/utils'
-import type { Priority } from '@/lib/types'
+import { Badge } from '@/components/ui/badge'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { Priority } from '@/lib/types'
 
-/**
- * PriorityBadge component renders a badge indicating task priority.
- *
- * @param priority - The priority level ("High", "Medium", or "Low").
- */
-export const PriorityBadge = ({ priority }: { priority: Priority }) => {
-  // Define styling and labels for each priority level using standard Tailwind classes
-  const priorityConfig = {
-    High: {
-      label: 'High',
-      className: 'text-red-700 bg-red-50 border-red-200',
+const priorityBadgeVariants = cva(
+  'inline-flex items-center font-medium transition-colors',
+  {
+    variants: {
+      priority: {
+        High: 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/15',
+        Medium:
+          'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800',
+        Low: 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-950 dark:text-green-300 dark:border-green-800',
+      },
     },
-    Medium: {
-      label: 'Medium',
-      className: 'text-amber-700 bg-amber-50 border-amber-200',
-    },
-    Low: {
-      label: 'Low',
-      className: 'text-green-700 bg-green-50 border-green-200',
+    defaultVariants: {
+      priority: 'Medium',
     },
   }
+)
 
-  const { label, className } = priorityConfig[priority]
+interface PriorityBadgeProps
+  extends VariantProps<typeof priorityBadgeVariants> {
+  priority: Priority
+  size?: 'sm' | 'default'
+}
 
+export const PriorityBadge = ({ priority }: PriorityBadgeProps) => {
   return (
-    <div
-      className={cn(
-        'inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium',
-        'whitespace-nowrap shadow-sm',
-        className
-      )}
+    <Badge
+      variant="outline"
+      className={priorityBadgeVariants({ priority })}
+      data-priority={priority.toLowerCase()}
     >
-      {label}
-    </div>
+      {priority}
+    </Badge>
   )
 }
+
+export { priorityBadgeVariants }
