@@ -107,7 +107,7 @@ export function PaperworkSubmissionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl px-6 py-8 sm:px-8">
+      <DialogContent className="flex h-[70vh] max-w-2xl flex-col">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">Paperwork</DialogTitle>
           <DialogDescription>

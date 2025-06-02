@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { PriorityBadge } from '@/components/priority-badge'
 import { StatusBadge } from '@/components/status-badge'
-import { TaskDialog } from '@/components/task-dialog'
+import { PaperworkDialog } from '@/components/paperwork-dialog'
 import { PaperworkSubmissionDialog } from '@/components/paperwork-submission-dialog'
 import { paperworkRetrieval } from '@/server/queries/paperwork-retrieval'
 import {
@@ -349,13 +349,13 @@ export default function Calendar(): React.ReactElement {
             </Card>
           </div>
 
-          <TaskDialog
+          <PaperworkDialog
             isOpen={isViewPaperworksOpen}
             onOpenChange={setIsViewPaperworksOpen}
             selectedDate={selectedDate}
-            tasks={paperworks}
-            onAddTaskClick={handleAddPaperworkClick}
-            onTaskClick={handlePaperworkClick}
+            paperworks={paperworks}
+            onAddPaperworkClick={handleAddPaperworkClick}
+            onPaperworkClick={handlePaperworkClick}
             isCurrentOrFuture={isCurrentOrFuture}
           />
 
