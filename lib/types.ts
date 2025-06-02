@@ -25,7 +25,7 @@ export interface UserEntity {
 
 export type ViewMode = 'list' | 'grid'
 
-export type SortOption = 'date' | 'priority' | 'title' | 'status'
+export type SortOption = 'title' | 'priority' | 'status' | 'date'
 
 export type SortDirection = 'asc' | 'desc'
 

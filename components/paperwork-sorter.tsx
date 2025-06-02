@@ -31,28 +31,7 @@ export function PaperworkSorter({
       </DropdownMenuTrigger>
 
       {/* Dropdown menu for sorting options */}
-      <DropdownMenuContent
-        align="end"
-        className="w-56 border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900"
-      >
-        {/* Sorting by Due Date */}
-        <DropdownMenuCheckboxItem
-          checked={sortBy === 'date'}
-          onCheckedChange={() => onToggleSort('date')}
-        >
-          <div className="flex w-full items-center justify-between">
-            <span>Due Date</span>
-            {sortBy === 'date' && (
-              <ArrowUpDown
-                className={cn(
-                  'ml-2 h-3.5 w-3.5',
-                  sortDirection === 'desc' && 'rotate-180'
-                )}
-              />
-            )}
-          </div>
-        </DropdownMenuCheckboxItem>
-
+      <DropdownMenuContent align="end" className="w-56">
         {/* Sorting by Title */}
         <DropdownMenuCheckboxItem
           checked={sortBy === 'title'}
@@ -97,6 +76,24 @@ export function PaperworkSorter({
           <div className="flex w-full items-center justify-between">
             <span>Status</span>
             {sortBy === 'status' && (
+              <ArrowUpDown
+                className={cn(
+                  'ml-2 h-3.5 w-3.5',
+                  sortDirection === 'desc' && 'rotate-180'
+                )}
+              />
+            )}
+          </div>
+        </DropdownMenuCheckboxItem>
+
+        {/* Sorting by Due Date */}
+        <DropdownMenuCheckboxItem
+          checked={sortBy === 'date'}
+          onCheckedChange={() => onToggleSort('date')}
+        >
+          <div className="flex w-full items-center justify-between">
+            <span>Due Date</span>
+            {sortBy === 'date' && (
               <ArrowUpDown
                 className={cn(
                   'ml-2 h-3.5 w-3.5',

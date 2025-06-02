@@ -168,14 +168,14 @@ export default function Home() {
             <span>Filters:</span>
             {searchQuery && (
               <FilterPillDisplay
-                label={`Title: ${searchQuery}`}
+                label={searchQuery}
                 onRemove={() => setSearchQuery('')}
               />
             )}
             {priorityFilter.map(priority => (
               <FilterPillDisplay
                 key={priority}
-                label={`${priority} Priority`}
+                label={priority}
                 onRemove={() => togglePriorityFilter(priority)}
               />
             ))}
@@ -223,7 +223,7 @@ export default function Home() {
         open={addPaperworkDialogOpen}
         onOpenChange={setAddPaperworkDialogOpen}
         onPaperworkSubmit={addNewPaperwork}
-        defaultCompletionDate={new Date(2026, 0, 1)}
+        defaultCompletionDate={new Date()}
       />
     </div>
   )

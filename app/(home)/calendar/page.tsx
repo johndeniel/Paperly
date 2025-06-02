@@ -129,34 +129,33 @@ export default function Calendar(): React.ReactElement {
       <TooltipProvider>
         <div className="container mx-auto flex h-screen flex-col px-4 py-12">
           <div className="flex flex-grow flex-col space-y-4">
-            <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+            {/* Header - matches home page structure */}
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-medium tracking-tight">Calendar</h1>
-                <p className="text-muted-foreground mt-0.5 text-xs">
+                <h1 className="text-xl font-medium">Calendar</h1>
+                <p className="text-muted-foreground mt-0.5 text-sm">
                   View your Documents by date
                 </p>
-                {error && (
-                  <p className="mt-0.5 text-xs text-red-500">{error}</p>
-                )}
+                {error && <p className="text-sm text-red-500">{error}</p>}
               </div>
               <div className="flex items-center space-x-2">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handlePreviousMonth}
-                  className="h-7 w-7"
+                  className="h-8 w-8"
                   disabled={isPending}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <h2 className="min-w-[120px] px-2 text-center text-sm font-medium">
+                <h2 className="min-w-[140px] px-3 text-center text-sm font-medium">
                   {format(currentDate, 'MMMM yyyy')}
                 </h2>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleNextMonth}
-                  className="h-7 w-7"
+                  className="h-8 w-8"
                   disabled={isPending}
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -164,189 +163,196 @@ export default function Calendar(): React.ReactElement {
               </div>
             </div>
 
-            <Card className="h-[690px] overflow-hidden border-none bg-white shadow-none dark:bg-black">
-              <CardContent className="flex h-[690px] flex-col p-0">
-                <div className="border-border/40 grid grid-cols-7 border-b">
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
-                    day => (
-                      <div
-                        key={day}
-                        className="text-muted-foreground py-2 text-center text-xs font-medium"
-                      >
-                        {day}
-                      </div>
-                    )
-                  )}
-                </div>
+            {/* Calendar - uses flexible height like home page */}
+            <div className="flex-grow">
+              <Card className="h-full overflow-hidden border-none bg-white shadow-none dark:bg-black">
+                <CardContent className="flex h-full flex-col p-0">
+                  {/* Calendar Header */}
+                  <div className="border-border/40 grid grid-cols-7 border-b">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
+                      day => (
+                        <div
+                          key={day}
+                          className="text-muted-foreground py-3 text-center text-sm font-medium"
+                        >
+                          {day}
+                        </div>
+                      )
+                    )}
+                  </div>
 
-                <div className="grid flex-grow grid-cols-7">
-                  {weeks.flat().map((day, index) => {
-                    const dayPaperworks = day
-                      ? getPaperworksForDay(day, paperworksByDate)
-                      : []
-                    const {
-                      visible: visiblePaperworks,
-                      remaining: remainingCount,
-                    } = getVisiblePaperworks(dayPaperworks)
+                  {/* Calendar Grid - flexible height */}
+                  <div className="grid flex-grow grid-cols-7 grid-rows-6">
+                    {weeks.flat().map((day, index) => {
+                      const dayPaperworks = day
+                        ? getPaperworksForDay(day, paperworksByDate)
+                        : []
+                      const {
+                        visible: visiblePaperworks,
+                        remaining: remainingCount,
+                      } = getVisiblePaperworks(dayPaperworks)
 
-                    return (
-                      <div
-                        key={index}
-                        className={cn(
-                          'border-border/40 hover:bg-muted/5 relative border-r border-b',
-                          index % 7 === 0 && 'border-l',
-                          day
-                            ? 'cursor-pointer transition-colors'
-                            : 'bg-muted/5',
-                          day &&
-                            isCurrentOrFuture(day) &&
-                            'hover:ring-primary/10 hover:ring-1'
-                        )}
-                        onClick={() => handleDayClick(day)}
-                        role={day ? 'button' : 'presentation'}
-                        aria-label={
-                          day ? format(day, 'EEEE, MMMM d, yyyy') : undefined
-                        }
-                      >
-                        {day && (
-                          <div
-                            className={cn(
-                              'flex h-full w-full flex-col p-1.5 transition-colors',
-                              getDayBackgroundColor(day, paperworksByDate),
-                              !isSameMonth(day, currentDate) && 'opacity-40'
-                            )}
-                          >
-                            <div className="mb-1 flex items-center justify-between">
-                              <span
-                                className={cn(
-                                  'flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium',
-                                  isToday(day) &&
-                                    'bg-primary text-primary-foreground'
-                                )}
-                              >
-                                {format(day, 'd')}
-                              </span>
-                              {dayPaperworks.length > 0 && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="text-muted-foreground bg-muted/30 hover:bg-muted/50 rounded-full px-1.5 py-0.5 text-[9px] font-medium transition-colors">
-                                      {dayPaperworks.length}
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent
-                                    side="top"
-                                    className={tooltipStyles.content}
-                                  >
-                                    <div className="p-2 text-xs">
-                                      {formatPaperworkCountText(
-                                        dayPaperworks.length
-                                      )}{' '}
-                                      on this day
-                                    </div>
-                                  </TooltipContent>
-                                </Tooltip>
+                      return (
+                        <div
+                          key={index}
+                          className={cn(
+                            'border-border/40 hover:bg-muted/5 relative min-h-0 border-r border-b',
+                            index % 7 === 0 && 'border-l',
+                            day
+                              ? 'cursor-pointer transition-colors'
+                              : 'bg-muted/5',
+                            day &&
+                              isCurrentOrFuture(day) &&
+                              'hover:ring-primary/10 hover:ring-1'
+                          )}
+                          onClick={() => handleDayClick(day)}
+                          role={day ? 'button' : 'presentation'}
+                          aria-label={
+                            day ? format(day, 'EEEE, MMMM d, yyyy') : undefined
+                          }
+                        >
+                          {day && (
+                            <div
+                              className={cn(
+                                'flex h-full w-full flex-col p-2 transition-colors',
+                                getDayBackgroundColor(day, paperworksByDate),
+                                !isSameMonth(day, currentDate) && 'opacity-40'
                               )}
-                            </div>
-
-                            <div className="mt-0.5 space-y-0.5 overflow-hidden">
-                              {visiblePaperworks.map(paperwork => {
-                                const isCompleted =
-                                  isPaperworkCompleted(paperwork)
-                                return (
-                                  <Tooltip key={paperwork.paperwork_id}>
+                            >
+                              <div className="mb-2 flex items-center justify-between">
+                                <span
+                                  className={cn(
+                                    'flex h-6 w-6 items-center justify-center rounded-full text-sm font-medium',
+                                    isToday(day) &&
+                                      'bg-primary text-primary-foreground'
+                                  )}
+                                >
+                                  {format(day, 'd')}
+                                </span>
+                                {dayPaperworks.length > 0 && (
+                                  <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <div
-                                        className={cn(
-                                          'bg-background/80 hover:bg-muted/60 flex cursor-pointer items-center gap-1 rounded-sm px-1 py-0.5 text-[9px]',
-                                          isCompleted &&
-                                            'text-muted-foreground line-through',
-                                          `border-l-2 ${getPriorityBorderColor(paperwork.processing_priority)}`
-                                        )}
-                                      >
-                                        <div className="truncate">
-                                          {paperwork.paper_title}
-                                        </div>
-                                      </div>
+                                      <span className="text-muted-foreground bg-muted/30 hover:bg-muted/50 rounded-full px-2 py-0.5 text-xs font-medium transition-colors">
+                                        {dayPaperworks.length}
+                                      </span>
                                     </TooltipTrigger>
                                     <TooltipContent
-                                      side="right"
-                                      className={tooltipStyles.paperworkTooltip}
+                                      side="top"
+                                      className={tooltipStyles.content}
                                     >
-                                      <div className="p-3">
-                                        <div className="mb-2 flex items-start justify-between gap-2">
-                                          <div className="flex items-center gap-2">
-                                            <div
-                                              className={cn(
-                                                'h-4 w-1 shrink-0 rounded-sm',
-                                                getPriorityIndicatorColor(
-                                                  paperwork.processing_priority
-                                                )
-                                              )}
-                                            />
-                                            <h4
-                                              className={cn(
-                                                'text-xs leading-tight font-bold',
-                                                isCompleted &&
-                                                  'text-muted-foreground line-through'
-                                              )}
-                                              title={paperwork.paper_title}
-                                            >
-                                              {paperwork.paper_title}
-                                            </h4>
-                                          </div>
-                                          <PriorityBadge
-                                            priority={
-                                              paperwork.processing_priority
-                                            }
-                                          />
-                                        </div>
-
-                                        {paperwork.paper_description && (
-                                          <>
-                                            <p
-                                              className={cn(
-                                                'text-muted-foreground mb-2 text-[10px] leading-normal',
-                                                isCompleted && 'line-through'
-                                              )}
-                                              title={
-                                                paperwork.paper_description
-                                              }
-                                            >
-                                              {paperwork.paper_description}
-                                            </p>
-                                            <Separator className="from-border/10 via-border/80 to-border/10 my-2.5 w-full bg-gradient-to-r" />
-                                          </>
-                                        )}
-
-                                        <div className="flex items-center justify-between text-[10px]">
-                                          <p className="text-muted-foreground font-medium">
-                                            {getFormattedPaperworkDate(
-                                              paperwork,
-                                              'MMMM d, yyyy'
-                                            )}
-                                          </p>
-                                          <StatusBadge task={paperwork} />
-                                        </div>
+                                      <div className="p-2 text-xs">
+                                        {formatPaperworkCountText(
+                                          dayPaperworks.length
+                                        )}{' '}
+                                        on this day
                                       </div>
                                     </TooltipContent>
                                   </Tooltip>
-                                )
-                              })}
+                                )}
+                              </div>
 
-                              {remainingCount > 0 && (
-                                <div className="text-muted-foreground flex items-center gap-0.5 px-1 text-[8px]">
-                                  <span>+{remainingCount} more</span>
-                                </div>
-                              )}
+                              <div className="flex-grow space-y-1 overflow-hidden">
+                                {visiblePaperworks.map(paperwork => {
+                                  const isCompleted =
+                                    isPaperworkCompleted(paperwork)
+                                  return (
+                                    <Tooltip key={paperwork.paperwork_id}>
+                                      <TooltipTrigger asChild>
+                                        <div
+                                          className={cn(
+                                            'bg-background/90 hover:bg-muted/60 flex cursor-pointer items-center gap-1 rounded-sm px-1.5 py-1 text-xs',
+                                            isCompleted &&
+                                              'text-muted-foreground line-through',
+                                            `border-l-2 ${getPriorityBorderColor(paperwork.processing_priority)}`
+                                          )}
+                                        >
+                                          <div className="truncate">
+                                            {paperwork.paper_title}
+                                          </div>
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent
+                                        side="right"
+                                        className={
+                                          tooltipStyles.paperworkTooltip
+                                        }
+                                      >
+                                        <div className="p-3">
+                                          <div className="mb-2 flex items-start justify-between gap-2">
+                                            <div className="flex items-center gap-2">
+                                              <div
+                                                className={cn(
+                                                  'h-4 w-1 shrink-0 rounded-sm',
+                                                  getPriorityIndicatorColor(
+                                                    paperwork.processing_priority
+                                                  )
+                                                )}
+                                              />
+                                              <h4
+                                                className={cn(
+                                                  'text-xs leading-tight font-bold',
+                                                  isCompleted &&
+                                                    'text-muted-foreground line-through'
+                                                )}
+                                                title={paperwork.paper_title}
+                                              >
+                                                {paperwork.paper_title}
+                                              </h4>
+                                            </div>
+                                            <PriorityBadge
+                                              priority={
+                                                paperwork.processing_priority
+                                              }
+                                            />
+                                          </div>
+
+                                          {paperwork.paper_description && (
+                                            <>
+                                              <p
+                                                className={cn(
+                                                  'text-muted-foreground mb-2 text-[10px] leading-normal',
+                                                  isCompleted && 'line-through'
+                                                )}
+                                                title={
+                                                  paperwork.paper_description
+                                                }
+                                              >
+                                                {paperwork.paper_description}
+                                              </p>
+                                              <Separator className="from-border/10 via-border/80 to-border/10 my-2.5 w-full bg-gradient-to-r" />
+                                            </>
+                                          )}
+
+                                          <div className="flex items-center justify-between text-[10px]">
+                                            <p className="text-muted-foreground font-medium">
+                                              {getFormattedPaperworkDate(
+                                                paperwork,
+                                                'MMMM d, yyyy'
+                                              )}
+                                            </p>
+                                            <StatusBadge task={paperwork} />
+                                          </div>
+                                        </div>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )
+                                })}
+
+                                {remainingCount > 0 && (
+                                  <div className="text-muted-foreground flex items-center gap-0.5 px-1.5 text-xs">
+                                    <span>+{remainingCount} more</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           <PaperworkDialog
