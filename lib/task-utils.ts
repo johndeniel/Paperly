@@ -81,7 +81,7 @@ export const getFormattedPaperworkDate = (
  */
 export const getCompletionStatus = (task: Paperwork): Status => {
   if (!task.target_completion_date) {
-    return 'active'
+    return 'Active'
   }
 
   const isCompleted =
@@ -91,15 +91,15 @@ export const getCompletionStatus = (task: Paperwork): Status => {
 
   if (!isCompleted) {
     const targetDate = parseDate(task.target_completion_date)
-    return isPast(targetDate) && !isToday(targetDate) ? 'overdue' : 'active'
+    return isPast(targetDate) && !isToday(targetDate) ? 'Overdue' : 'Active'
   }
 
   const dueDate = parseDate(task.target_completion_date)
   const completedDate = parseDate(task.actual_completion_date!)
 
   return isBefore(completedDate, dueDate) || isSameDay(completedDate, dueDate)
-    ? 'completed on time'
-    : 'completed late'
+    ? 'Punctual'
+    : 'Delayed'
 }
 
 /**
@@ -196,10 +196,10 @@ export const sortPaperworks = (
         : priorityB - priorityA
     } else if (sortBy === 'status') {
       const statusOrder: Record<Status, number> = {
-        overdue: 4,
-        active: 3,
-        'completed late': 2,
-        'completed on time': 1,
+        Overdue: 4,
+        Active: 3,
+        Delayed: 2,
+        Punctual: 1,
       }
 
       const statusA = statusOrder[getCompletionStatus(a)] || 0
@@ -332,7 +332,7 @@ export const getDayBackgroundColor = (
   const dayPaperworks = getPaperworksForDay(day, paperworksByDate)
 
   const hasOverdue = dayPaperworks.some(
-    paperwork => getCompletionStatus(paperwork) === 'overdue'
+    paperwork => getCompletionStatus(paperwork) === 'Overdue'
   )
 
   if (hasOverdue) {

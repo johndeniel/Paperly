@@ -31,11 +31,7 @@ export type SortDirection = 'asc' | 'desc'
 
 export type Priority = 'High' | 'Medium' | 'Low'
 
-export type Status =
-  | 'active'
-  | 'overdue'
-  | 'completed on time'
-  | 'completed late'
+export type Status = 'Active' | 'Overdue' | 'Punctual' | 'Delayed'
 
 export interface Paperwork {
   paperwork_id: string

@@ -21,12 +21,7 @@ interface PaperworkFilterProps {
 
 // Define filter options for priority and status
 const PRIORITY_OPTIONS: Priority[] = ['High', 'Medium', 'Low']
-const STATUS_OPTIONS: Status[] = [
-  'active',
-  'overdue',
-  'completed on time',
-  'completed late',
-]
+const STATUS_OPTIONS: Status[] = ['Active', 'Overdue', 'Punctual', 'Delayed']
 
 export function PaperworkFilter({
   filterState,
