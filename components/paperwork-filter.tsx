@@ -20,7 +20,7 @@ interface PaperworkFilterProps {
 }
 
 // Define filter options for priority and status
-const PRIORITY_OPTIONS: Priority[] = ['High', 'Medium', 'Low']
+const PRIORITY_OPTIONS: Priority[] = ['Low', 'Medium', 'High']
 const STATUS_OPTIONS: Status[] = ['Active', 'Overdue', 'Punctual', 'Delayed']
 
 export function PaperworkFilter({
@@ -36,18 +36,6 @@ export function PaperworkFilter({
     () => priorityFilter.length + statusFilter.length + (searchQuery ? 1 : 0),
     [priorityFilter, statusFilter, searchQuery]
   )
-
-  // Format filter labels for display
-  const formatFilterLabel = (filter: string) => {
-    switch (filter) {
-      case 'completed on time':
-        return 'Completed On Time'
-      case 'completed late':
-        return 'Completed Late'
-      default:
-        return filter.charAt(0).toUpperCase() + filter.slice(1)
-    }
-  }
 
   return (
     <DropdownMenu>
@@ -76,7 +64,7 @@ export function PaperworkFilter({
               onCheckedChange={() => onTogglePriorityFilter(priority)}
               className="rounded-md"
             >
-              {formatFilterLabel(priority)} Priority
+              {priority}
             </DropdownMenuCheckboxItem>
           ))}
 
@@ -93,7 +81,7 @@ export function PaperworkFilter({
               onCheckedChange={() => onToggleStatusFilter(status)}
               className="rounded-md"
             >
-              {formatFilterLabel(status)}
+              {status}
             </DropdownMenuCheckboxItem>
           ))}
 
