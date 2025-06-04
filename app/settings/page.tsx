@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { generateInitials, extractAuthTokenPayload } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useTheme } from 'next-themes'
 import { toast } from 'sonner'
@@ -20,97 +21,39 @@ import { logoutUser } from '@/server/action/logout-user'
 import { useRouter } from 'next/navigation'
 import { AuthTokenPayload } from '@/lib/types'
 
-/**
- * Extracts and validates authentication token from browser cookies
- * @returns Decoded token payload or null if invalid/missing
- */
-function extractAuthTokenPayload(): AuthTokenPayload | null {
-  try {
-    const cookies = document.cookie.split(';').reduce(
-      (acc, cookie) => {
-        const [key, value] = cookie.trim().split('=')
-        if (key && value) {
-          acc[key] = decodeURIComponent(value)
-        }
-        return acc
-      },
-      {} as Record<string, string>
-    )
-
-    const authToken = cookies.authToken
-    if (!authToken) {
-      console.warn('Authentication token not found in cookies')
-      return null
-    }
-
-    // Decode JWT payload (base64 decode the middle section)
-    const tokenParts = authToken.split('.')
-    if (tokenParts.length !== 3) {
-      console.error('Invalid JWT token format')
-      return null
-    }
-
-    const payload = JSON.parse(atob(tokenParts[1]))
-
-    // Validate required fields
-    if (!payload.user_id || !payload.user_name || !payload.division) {
-      console.error('Invalid token payload: missing required fields')
-      return null
-    }
-
-    return payload as AuthTokenPayload
-  } catch (error) {
-    console.error('Error extracting auth token payload:', error)
-    return null
-  }
-}
-
-/**
- * Generates user initials from full name for avatar fallback
- */
-function generateInitials(name: string): string {
-  return name
-    .split(' ')
-    .map(part => part.charAt(0).toUpperCase())
-    .slice(0, 2)
-    .join('')
-}
-
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const { push } = useRouter()
 
-  // State for user profile data
   const [profile, setProfile] = React.useState<AuthTokenPayload | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [authError, setAuthError] = React.useState<string | null>(null)
 
-  // Load user profile from auth token on component mount
   React.useEffect(() => {
-    const loadUserProfile = async () => {
+    const loadUserProfile = () => {
+      setIsLoading(true)
+      setAuthError(null)
       try {
-        setIsLoading(true)
-        setAuthError(null)
-
         const tokenPayload = extractAuthTokenPayload()
-
-        // Set profile data from token
-        setProfile(tokenPayload)
+        if (tokenPayload) {
+          setProfile(tokenPayload)
+        } else {
+          setAuthError('Invalid or missing authentication token.')
+        }
       } catch (error) {
         console.error('Error loading user profile:', error)
-        setAuthError('Failed to load user profile')
+        setAuthError('Failed to load user profile.')
       } finally {
         setIsLoading(false)
       }
     }
-
     loadUserProfile()
-  }, [push])
+  }, [])
 
   const handleLogout = async () => {
     try {
       const message = await logoutUser()
-      toast.success(message)
+      toast.success(message || 'Logged out successfully')
       push('/login')
     } catch (error: unknown) {
       const errorMessage =
@@ -120,32 +63,26 @@ export default function SettingsPage() {
     }
   }
 
-  // Show loading state
   if (isLoading) {
     return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="space-y-4 text-center">
-          <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
-          <p className="text-muted-foreground text-sm">
-            Loading your settings...
-          </p>
-        </div>
+      <div className="container mx-auto flex h-screen items-center justify-center">
+        <div className="animate-pulse text-base">Loading your settings...</div>
       </div>
     )
   }
 
-  // Show error state
   if (authError || !profile) {
     return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="space-y-4 text-center">
-          <h2 className="text-destructive text-lg font-semibold">
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="bg-card dark:bg-card/80 rounded-lg border p-5 text-center shadow-lg sm:p-6">
+          <h2 className="text-destructive mb-2 text-lg font-semibold">
             Authentication Error
           </h2>
-          <p className="text-muted-foreground text-sm">
-            {authError || 'Unable to load user profile'}
+          <p className="text-muted-foreground mb-5 text-sm">
+            {authError ||
+              'Unable to load user profile. Please try logging in again.'}
           </p>
-          <Button onClick={() => push('/login')} variant="outline" size="sm">
+          <Button onClick={() => push('/login')} variant="ghost">
             Return to Login
           </Button>
         </div>
@@ -154,189 +91,170 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="bg-background flex min-h-screen items-start justify-center px-4 py-8 sm:px-6">
-      <div className="w-full max-w-xl space-y-6">
-        <div className="mb-6">
-          <h1 className="text-xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground mt-1 text-xs">
-            Manage your account settings and preferences
+    <div className="min-h-screen px-3 py-6 sm:px-4 lg:px-6">
+      <div className="mx-auto w-full max-w-xl space-y-6">
+        <header>
+          <h1 className="text-foreground text-2xl font-bold tracking-tight sm:text-3xl">
+            Settings
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Manage your account settings and preferences.
           </p>
-        </div>
+        </header>
 
-        <div className="space-y-6">
-          {/* Profile Card */}
-          <Card className="dark:border-muted border shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="pb-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage
-                      src={profile.avatar_url}
-                      alt={`${profile.full_name}'s avatar`}
-                    />
-                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                      {generateInitials(profile.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="ml-4">
-                    <h3 className="text-base leading-tight font-medium">
-                      {profile.full_name}
-                    </h3>
-                    <p className="text-muted-foreground mt-0.5 text-sm">
-                      @{profile.user_name}
-                    </p>
-                    <p className="text-muted-foreground mt-0.5 text-xs">
-                      ID: {profile.user_id}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex-shrink-0">
-                  <div className="bg-primary/5 text-primary dark:bg-primary/15 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
-                    {profile.division}
-                  </div>
+        {/* Profile */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Profile</CardTitle>
+          </CardHeader>
+          <CardContent className="pb-3">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center">
+                <Avatar className="h-16 w-16 text-base">
+                  <AvatarImage
+                    src={profile.avatar_url || undefined}
+                    alt={`${profile.full_name}'s avatar`}
+                  />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {generateInitials(profile.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="ml-3">
+                  <h3 className="text-foreground text-lg font-semibold">
+                    {profile.full_name}
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    @{profile.user_name}
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    ID: {profile.user_id}
+                  </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <div className="sm:flex-shrink-0">
+                <div className="bg-primary/10 text-primary dark:bg-primary/20 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
+                  {profile.division}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Password Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">Password</CardTitle>
-            </CardHeader>
-            <CardContent className="pb-2">
-              <form className="space-y-4">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="currentPassword"
-                    className="text-xs font-medium"
-                  >
-                    Current password
-                  </Label>
-                  <Input
-                    id="currentPassword"
-                    type="password"
-                    className="focus:ring-primary h-9 focus:ring-1"
-                    placeholder="••••••••"
-                    disabled
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword" className="text-xs font-medium">
-                    New password
-                  </Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    className="focus:ring-primary h-9 focus:ring-1"
-                    placeholder="••••••••"
-                    disabled
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="confirmPassword"
-                    className="text-xs font-medium"
-                  >
-                    Confirm password
-                  </Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    className="focus:ring-primary h-9 focus:ring-1"
-                    placeholder="••••••••"
-                    disabled
-                  />
-                </div>
-                <div className="flex justify-end pt-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 px-3 text-xs font-medium"
-                    disabled
-                  >
-                    Update password
+        {/* Password */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Password</CardTitle>
+          </CardHeader>
+          <CardContent className="pb-3">
+            <form className="space-y-3">
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="currentPassword"
+                  className="text-sm font-medium"
+                >
+                  Current password
+                </Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  className="focus:ring-primary h-9 focus:ring-1"
+                  placeholder="••••••••"
+                  disabled
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="newPassword" className="text-sm font-medium">
+                  New password
+                </Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  className="focus:ring-primary h-9 focus:ring-1"
+                  placeholder="••••••••"
+                  disabled
+                />
+              </div>
+              <div className="flex justify-end pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs font-medium"
+                  disabled
+                >
+                  Update Password
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Appearance */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">
+              Appearance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-3">
+            <div className="flex items-center justify-between">
+              <span className="text-foreground text-sm font-medium">
+                Theme Preference
+              </span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    {theme === 'light' ? (
+                      <Sun className="h-4 w-4" />
+                    ) : theme === 'dark' ? (
+                      <Moon className="h-4 w-4" />
+                    ) : (
+                      <Laptop className="h-4 w-4" />
+                    )}
+                    <span className="sr-only">Toggle theme</span>
                   </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Appearance Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">
-                Appearance
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pb-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium">Theme preference</span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="dark:border-muted hover:bg-muted/50 h-8 w-8 p-0"
-                    >
-                      {theme === 'light' ? (
-                        <Sun className="h-3.5 w-3.5" />
-                      ) : theme === 'dark' ? (
-                        <Moon className="h-3.5 w-3.5" />
-                      ) : (
-                        <Laptop className="h-3.5 w-3.5" />
-                      )}
-                      <span className="sr-only">Toggle theme</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="dark:border-muted w-32"
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => setTheme('light')}
+                    className="cursor-pointer text-sm"
                   >
-                    <DropdownMenuItem
-                      onClick={() => setTheme('light')}
-                      className="cursor-pointer text-xs"
-                    >
-                      <Sun className="mr-2 h-3.5 w-3.5" />
-                      <span>Light</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setTheme('dark')}
-                      className="cursor-pointer text-xs"
-                    >
-                      <Moon className="mr-2 h-3.5 w-3.5" />
-                      <span>Dark</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setTheme('system')}
-                      className="cursor-pointer text-xs"
-                    >
-                      <Laptop className="mr-2 h-3.5 w-3.5" />
-                      <span>System</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardContent>
-          </Card>
+                    <Sun className="mr-2 h-3.5 w-3.5" />
+                    <span>Light</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setTheme('dark')}
+                    className="cursor-pointer text-sm"
+                  >
+                    <Moon className="mr-2 h-3.5 w-3.5" />
+                    <span>Dark</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setTheme('system')}
+                    className="cursor-pointer text-sm"
+                  >
+                    <Laptop className="mr-2 h-3.5 w-3.5" />
+                    <span>System</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Separator className="dark:bg-muted my-6" />
+        <Separator />
 
-          <div className="flex justify-end pb-6">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:border-muted h-8 px-3 text-xs font-medium transition-colors"
-            >
-              <LogOut className="mr-2 h-3.5 w-3.5" />
-              Log out
-            </Button>
-          </div>
+        {/* Logout */}
+        <div className="flex justify-end pb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            className="text-muted-foreground hover:border-destructive/80 hover:bg-destructive/10 hover:text-destructive text-sm font-medium transition-colors"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Log Out
+          </Button>
         </div>
       </div>
     </div>

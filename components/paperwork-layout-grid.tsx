@@ -17,7 +17,7 @@ import {
 } from '@/lib/task-utils'
 import type { Paperwork } from '@/lib/types'
 
-interface PaperworkGridProps {
+interface PaperworkGridLayoutProps {
   paperworks: Paperwork[]
   onPaperworkClick: (paperworkId: string) => void
 }
@@ -25,7 +25,7 @@ interface PaperworkGridProps {
 export function PaperworkLayoutGrid({
   paperworks,
   onPaperworkClick,
-}: PaperworkGridProps) {
+}: PaperworkGridLayoutProps) {
   return (
     <div className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {paperworks.map(paperwork => {
@@ -87,7 +87,7 @@ export function PaperworkLayoutGrid({
                     {getFormattedPaperworkDate(paperwork, 'MMM d, yyyy')}
                   </Badge>
                   <div className="ml-6 flex flex-shrink-0 items-center justify-center gap-3 opacity-70 transition-opacity group-hover:opacity-100">
-                    <StatusBadge task={paperwork} />
+                    <StatusBadge status={paperwork} />
                     <PriorityBadge priority={paperwork.processing_priority} />
                   </div>
                 </div>

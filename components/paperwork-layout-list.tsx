@@ -9,7 +9,7 @@ import {
 } from '@/lib/task-utils'
 import type { Paperwork } from '@/lib/types'
 
-interface PaperworkListProps {
+interface PaperworkLayoutListProps {
   paperworks: Paperwork[]
   onPaperworkClick: (paperworkId: string) => void
 }
@@ -17,7 +17,7 @@ interface PaperworkListProps {
 export function PaperworkLayoutList({
   paperworks,
   onPaperworkClick,
-}: PaperworkListProps) {
+}: PaperworkLayoutListProps) {
   return (
     <div className="space-y-0">
       {paperworks.map(paperwork => {
@@ -66,7 +66,7 @@ export function PaperworkLayoutList({
 
             {/* Right badges - perfectly centered */}
             <div className="ml-6 flex flex-shrink-0 items-center justify-center gap-3 opacity-70 transition-opacity group-hover:opacity-100">
-              <StatusBadge task={paperwork} />
+              <StatusBadge status={paperwork} />
               <PriorityBadge priority={paperwork.processing_priority} />
             </div>
           </div>

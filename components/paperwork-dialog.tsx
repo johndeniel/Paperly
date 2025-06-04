@@ -166,7 +166,7 @@ export const PaperworkDialog = ({
                               )}
                             </Badge>
                             <div className="ml-2 flex items-center gap-1 opacity-70 transition-opacity group-hover:opacity-100">
-                              <StatusBadge task={paperwork} />
+                              <StatusBadge status={paperwork} />
                               <PriorityBadge
                                 priority={paperwork.processing_priority}
                               />

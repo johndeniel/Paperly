@@ -8,7 +8,7 @@ const statusBadgeVariants = cva(
   'inline-flex items-center font-medium transition-colors',
   {
     variants: {
-      status: {
+      _status: {
         Punctual:
           'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-950 dark:text-green-300 dark:border-green-800',
         Delayed:
@@ -20,17 +20,17 @@ const statusBadgeVariants = cva(
       },
     },
     defaultVariants: {
-      status: 'Active',
+      _status: 'Active',
     },
   }
 )
 
 interface StatusBadgeProps extends VariantProps<typeof statusBadgeVariants> {
-  task: Paperwork
+  status: Paperwork
 }
 
-export const StatusBadge = ({ task }: StatusBadgeProps) => {
-  const status = getCompletionStatus(task)
+export const StatusBadge = ({ status }: StatusBadgeProps) => {
+  const _status = getCompletionStatus(status)
 
   const statusLabels = {
     Punctual: 'Punctual',
@@ -42,10 +42,10 @@ export const StatusBadge = ({ task }: StatusBadgeProps) => {
   return (
     <Badge
       variant="outline"
-      className={statusBadgeVariants({ status })}
+      className={statusBadgeVariants({ _status })}
       data-status={status}
     >
-      {statusLabels[status]}
+      {statusLabels[_status]}
     </Badge>
   )
 }

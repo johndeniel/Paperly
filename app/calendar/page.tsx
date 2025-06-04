@@ -338,11 +338,6 @@ export default function Calendar(): React.ReactElement {
                                               {paperwork.paper_title}
                                             </h4>
                                           </div>
-                                          <PriorityBadge
-                                            priority={
-                                              paperwork.processing_priority
-                                            }
-                                          />
                                         </div>
 
                                         {paperwork.paper_description && (
@@ -358,7 +353,7 @@ export default function Calendar(): React.ReactElement {
                                             >
                                               {paperwork.paper_description}
                                             </p>
-                                            <Separator className="from-border/10 via-border/80 to-border/10 my-2.5 w-full bg-gradient-to-r" />
+                                            <Separator className="from-border/10 via-border/80 to-border/10 my-2.5 w-full" />
                                           </>
                                         )}
 
@@ -369,7 +364,14 @@ export default function Calendar(): React.ReactElement {
                                               'MMMM d, yyyy'
                                             )}
                                           </p>
-                                          <StatusBadge task={paperwork} />
+                                          <div className="ml-6 flex flex-shrink-0 items-center justify-center gap-3 opacity-70 transition-opacity group-hover:opacity-100">
+                                            <StatusBadge status={paperwork} />
+                                            <PriorityBadge
+                                              priority={
+                                                paperwork.processing_priority
+                                              }
+                                            />
+                                          </div>
                                         </div>
                                       </div>
                                     </TooltipContent>
