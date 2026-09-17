@@ -1,8 +1,5 @@
-// app/api/paper/retrieval/route.ts (or your specific path)
-
 import { NextResponse } from 'next/server'
 import { Query } from '@/lib/db/postgresql-connection-helper' // Adjust path as needed
-import { getAuthenticatedUser } from '@/lib/jwt' // Adjust path as needed
 import type { Priority } from '@/lib/types' // Assuming Priority is defined and exported from here
 
 // Interface for the structure of paperwork items returned by this API
@@ -25,15 +22,7 @@ interface ApiResponse {
 
 export async function GET(): Promise<NextResponse> {
   try {
-    const authenticatedUser = await getAuthenticatedUser()
-
-    if (!authenticatedUser?.division) {
-      return createJsonResponse('UNAUTHORIZED', 'Authentication required', 401)
-    }
-
-    const paperworkItems = await fetchPaperworkByDivision(
-      authenticatedUser.division
-    )
+    const paperworkItems = await fetchAllPaperwork()
     return createJsonResponse(
       'SUCCESS',
       'Paperwork retrieved successfully',
@@ -68,9 +57,7 @@ function createJsonResponse(
   return NextResponse.json(responseBody, { status })
 }
 
-async function fetchPaperworkByDivision(
-  divisionId: string
-): Promise<ApiPaperworkItem[]> {
+async function fetchAllPaperwork(): Promise<ApiPaperworkItem[]> {
   const sqlQuery = {
     query: `
       SELECT DISTINCT 
@@ -82,11 +69,9 @@ async function fetchPaperworkByDivision(
         COALESCE(TO_CHAR(ppt.target_completion_date, 'DD-MM-YYYY'), '') AS target_completion_date, 
         -- actual_completion_date will be NULL if the DB field is NULL
         TO_CHAR(ppt.actual_completion_date, 'DD-MM-YYYY') AS actual_completion_date
-      FROM paperwork_processing_ticket ppt 
-      INNER JOIN paper_processing_workflow ppw ON ppt.paperwork_id = ppw.paperwork_id 
-      WHERE ppw.target_department = $1
+      FROM paperwork_processing_ticket ppt
     `,
-    values: [divisionId],
+    values: [],
   }
 
   // Assuming Query returns an array of records from the database

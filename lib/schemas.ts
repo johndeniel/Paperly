@@ -1,13 +1,6 @@
 import { z } from 'zod'
 import { isBefore, startOfDay } from 'date-fns'
 
-export const loginFormSchema = z.object({
-  username: z.string().min(8, 'Username must be at least 8 characters.'),
-  password: z.string().min(8, 'Password must be at least 8 characters.'),
-})
-
-export type LoginCredentials = z.infer<typeof loginFormSchema>
-
 export const paperSubmissionSchema = z.object({
   paper_title: z.string().min(1, 'Title is required'),
   paper_description: z.string().min(1, 'Description is required'),
