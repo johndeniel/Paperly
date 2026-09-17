@@ -15,6 +15,11 @@ export interface Paperwork {
   processing_priority: Priority
   target_completion_date: string
   actual_completion_date?: string
+  paper_type?: string
+  paper_source?: string
+  assigned_department?: string | null
+  submitted_by_user_id?: string | null
+  completed_by_user_id?: string | null
 }
 
 export interface FilterState {

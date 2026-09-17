@@ -3,7 +3,7 @@
 import { Toaster } from '@/components/ui/sonner'
 import { useRouter } from 'next/navigation'
 import { FloatingDock } from '@/components/ui/floating-dock'
-import { Home, Calendar, Settings } from 'lucide-react'
+import { Home, Calendar } from 'lucide-react'
 
 const links = [
   {
@@ -21,14 +21,6 @@ const links = [
     ),
     href: '/calendar',
     view: 'calendar',
-  },
-  {
-    title: 'Settings',
-    icon: (
-      <Settings className="h-full w-full text-neutral-500 dark:text-neutral-300" />
-    ),
-    href: '/settings',
-    view: 'settings',
   },
 ]
 
